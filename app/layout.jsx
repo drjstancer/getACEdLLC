@@ -1,14 +1,17 @@
 import './globals.css'
 
 export const metadata = {
-  title: 'get ACEd, LLC | Dr. Joel Stancer',
+  title: {
+    default: 'get ACEd, LLC | Dr. Joel Stancer',
+    template: '%s | get ACEd, LLC',
+  },
   description:
-    'Transformational educational consulting rooted in leadership, mentorship, culture, and community-centered excellence.',
+    'Transformational educational leadership rooted in mentorship, institutional strategy, pathway development, culture, and community-centered excellence.',
   metadataBase: new URL('https://www.getacedllc.com'),
   openGraph: {
     title: 'get ACEd, LLC | Dr. Joel Stancer',
     description:
-      'Transformational educational consulting rooted in leadership, mentorship, culture, and community-centered excellence.',
+      'Transformational educational leadership rooted in mentorship, institutional strategy, pathway development, culture, and community-centered excellence.',
     url: 'https://www.getacedllc.com',
     siteName: 'get ACEd, LLC',
     images: [
@@ -26,8 +29,13 @@ export const metadata = {
     card: 'summary_large_image',
     title: 'get ACEd, LLC | Dr. Joel Stancer',
     description:
-      'Transformational educational consulting rooted in leadership, mentorship, culture, and community-centered excellence.',
+      'Transformational educational leadership rooted in mentorship, institutional strategy, pathway development, culture, and community-centered excellence.',
     images: ['/hero-drj.png'],
+  },
+  icons: {
+    icon: '/icon.svg',
+    shortcut: '/icon.svg',
+    apple: '/icon.svg',
   },
 }
 
