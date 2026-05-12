@@ -24,6 +24,9 @@ export default function InstitutionalInquiryForm() {
 
   const handleSubmit = async (e) => {
     e.preventDefault()
+
+    if (loading) return
+
     setLoading(true)
     setStatus(null)
 
@@ -55,6 +58,8 @@ export default function InstitutionalInquiryForm() {
         goals: '',
       })
     } catch (error) {
+      console.error(error)
+
       setStatus({
         type: 'error',
         message:
@@ -160,7 +165,7 @@ export default function InstitutionalInquiryForm() {
         </div>
       )}
 
-      <InstitutionalCTA href="#">
+      <InstitutionalCTA asButton type="submit">
         {loading ? 'Submitting Inquiry...' : 'Submit Inquiry'}
       </InstitutionalCTA>
     </form>
