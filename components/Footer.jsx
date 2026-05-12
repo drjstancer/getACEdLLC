@@ -1,17 +1,17 @@
 export default function Footer() {
   return (
-    <footer className="bg-black border-t border-white/10 py-16">
-      <div className="max-w-7xl mx-auto px-6 lg:px-12 grid md:grid-cols-3 gap-12 items-start">
+    <footer className="bg-black border-t border-white/10 py-24">
+      <div className="max-w-7xl mx-auto px-6 lg:px-12 grid md:grid-cols-3 gap-16 items-start">
         <div>
-          <p className="text-[#C8A96B] uppercase tracking-[0.35em] text-xs mb-4">
+          <p className="text-[#C8A96B] uppercase tracking-[0.35em] text-xs mb-6">
             get ACEd, LLC
           </p>
 
-          <h3 className="text-3xl font-serif mb-6 text-white">
+          <h3 className="text-3xl md:text-4xl font-serif leading-[1.08] tracking-[-0.02em] mb-8 text-white max-w-md">
             Achieving Community through Education Consulting
           </h3>
 
-          <p className="text-[#CFCFCF] leading-relaxed">
+          <p className="text-[#CFCFCF] leading-[1.9] max-w-md text-[1.02rem]">
             Transformational educational leadership rooted in mentorship,
             institutional culture, pathway development, and community-centered
             excellence.
@@ -19,11 +19,11 @@ export default function Footer() {
         </div>
 
         <div>
-          <p className="uppercase tracking-[0.18em] text-sm text-[#C8A96B] mb-6">
+          <p className="uppercase tracking-[0.18em] text-sm text-[#C8A96B] mb-8">
             Navigation
           </p>
 
-          <div className="space-y-4 text-[#D8D3CA]">
+          <div className="space-y-5 text-[#D8D3CA] text-[1.02rem] leading-relaxed">
             <a href="/about" className="block hover:text-white transition-colors duration-300">
               About
             </a>
@@ -43,11 +43,11 @@ export default function Footer() {
         </div>
 
         <div>
-          <p className="uppercase tracking-[0.18em] text-sm text-[#C8A96B] mb-6">
+          <p className="uppercase tracking-[0.18em] text-sm text-[#C8A96B] mb-8">
             Connect
           </p>
 
-          <div className="space-y-4 text-[#D8D3CA] leading-relaxed">
+          <div className="space-y-5 text-[#D8D3CA] leading-[1.9] text-[1.02rem]">
             <p>Columbia, Missouri</p>
             <p>hello@getacedllc.com</p>
             <p>Institutional Consulting & Thought Leadership</p>
