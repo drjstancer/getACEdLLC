@@ -8,6 +8,7 @@ export default function InstitutionalInquiryForm() {
     name: '',
     organization: '',
     email: '',
+    inquiryType: 'Institutional Consulting',
     goals: '',
   })
 
@@ -50,6 +51,7 @@ export default function InstitutionalInquiryForm() {
         name: '',
         organization: '',
         email: '',
+        inquiryType: 'Institutional Consulting',
         goals: '',
       })
     } catch (error) {
@@ -110,6 +112,25 @@ export default function InstitutionalInquiryForm() {
           required
           className="w-full bg-black/30 border border-white/10 px-5 py-5 text-white outline-none focus:border-[#C8A96B] transition-all duration-300"
         />
+      </div>
+
+      <div>
+        <label className="block uppercase tracking-[0.18em] text-xs text-[#C8A96B] mb-4">
+          Inquiry Type
+        </label>
+
+        <select
+          name="inquiryType"
+          value={formData.inquiryType}
+          onChange={handleChange}
+          className="w-full bg-black/30 border border-white/10 px-5 py-5 text-white outline-none focus:border-[#C8A96B] transition-all duration-300"
+        >
+          <option>Institutional Consulting</option>
+          <option>Speaking Engagement</option>
+          <option>Adult MHFA Training</option>
+          <option>Partnership Collaboration</option>
+          <option>Media Inquiry</option>
+        </select>
       </div>
 
       <div>
