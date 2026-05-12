@@ -2,17 +2,59 @@
 @tailwind components;
 @tailwind utilities;
 
+:root {
+  --background-primary: #070707;
+  --background-secondary: #111111;
+  --surface-primary: rgba(255, 255, 255, 0.03);
+  --surface-secondary: rgba(255, 255, 255, 0.06);
+
+  --text-primary: #F5F2EB;
+  --text-secondary: #D8D3CA;
+  --text-muted: #A8A29A;
+
+  --accent-primary: #C8A96B;
+  --accent-hover: #D7B980;
+
+  --border-primary: rgba(255, 255, 255, 0.10);
+  --border-secondary: rgba(255, 255, 255, 0.16);
+
+  --transition-standard: 300ms ease;
+}
+
 html {
   scroll-behavior: smooth;
 }
 
 body {
   margin: 0;
-  background: #0A0A0A;
-  color: #F5F2EB;
+  background: var(--background-primary);
+  color: var(--text-primary);
   font-family: Arial, Helvetica, sans-serif;
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
 }
 
 * {
   box-sizing: border-box;
+}
+
+::selection {
+  background: var(--accent-primary);
+  color: #000000;
+}
+
+a {
+  transition: color var(--transition-standard),
+    background-color var(--transition-standard),
+    border-color var(--transition-standard),
+    transform var(--transition-standard);
+}
+
+input,
+textarea,
+button {
+  transition: border-color var(--transition-standard),
+    background-color var(--transition-standard),
+    color var(--transition-standard),
+    transform var(--transition-standard);
 }
