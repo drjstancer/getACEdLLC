@@ -1,63 +1,66 @@
+import SiteLayout from '../../components/SiteLayout'
+import EditorialCard from '../../components/EditorialCard'
+
+const featuredArticles = [
+  {
+    category: 'Leadership',
+    title: 'Care-Centered Educational Leadership',
+    description:
+      'Transformational educational environments emerge when institutions intentionally cultivate belonging, mentorship, leadership, care, and community-rooted excellence.',
+    href: '/insights/care-centered-educational-leadership',
+  },
+  {
+    category: 'Mentorship',
+    title: 'Mentorship as Institutional Infrastructure',
+    description:
+      'Mentorship should not operate as an isolated initiative. Sustainable mentorship ecosystems must be embedded within institutional culture and leadership structures.',
+    href: '#',
+  },
+  {
+    category: 'Educational Strategy',
+    title: 'Building Transformational Pathway Ecosystems',
+    description:
+      'Educational pathways become transformational when institutions intentionally align mentorship, leadership, access, culture, and opportunity.',
+    href: '#',
+  },
+]
+
 export default function InsightsPage() {
-  const insights = [
-    {
-      title: 'Care-Centered Educational Leadership',
-      category: 'Leadership',
-    },
-    {
-      title: 'Transformational Pathways & Student Success',
-      category: 'Educational Strategy',
-    },
-    {
-      title: 'Community, Culture, & Institutional Belonging',
-      category: 'Institutional Culture',
-    },
-    {
-      title: 'Mentorship as Educational Infrastructure',
-      category: 'Mentorship',
-    },
-  ]
-
   return (
-    <main className="min-h-screen bg-[#F5F2EB] text-[#111111] px-6 py-24 lg:px-12">
-      <div className="max-w-7xl mx-auto">
-        <p className="uppercase tracking-[0.35em] text-[#9C7A3C] text-xs mb-8">
-          Insights & Thought Leadership
-        </p>
+    <SiteLayout>
+      <main className="min-h-screen bg-[#070707] text-[#F5F2EB] px-6 py-28 lg:px-12">
+        <div className="max-w-7xl mx-auto">
+          <div className="max-w-5xl mb-28">
+            <p className="uppercase tracking-[0.35em] text-[#C8A96B] text-xs mb-10">
+              Insights & Thought Leadership
+            </p>
 
-        <h1 className="text-5xl md:text-7xl leading-[0.95] mb-12 font-serif max-w-6xl">
-          Reflections on transformational educational leadership, culture, mentorship, and institutional excellence.
-        </h1>
+            <h1 className="text-5xl md:text-7xl font-serif leading-[0.95] tracking-[-0.02em] mb-12 max-w-6xl">
+              Editorial reflections on transformational educational leadership,
+              mentorship, institutional culture, and community-centered
+              excellence.
+            </h1>
 
-        <p className="text-xl leading-relaxed text-[#333333] max-w-4xl mb-24">
-          A developing collection of educational insights, leadership reflections, frameworks, and transformational strategies centered on cultivating environments where people and communities thrive.
-        </p>
+            <p className="text-xl text-[#D8D3CA] leading-[1.9] max-w-4xl">
+              The insights ecosystem exists to explore the philosophies,
+              frameworks, leadership practices, and transformational approaches
+              shaping educational environments where people can thrive.
+            </p>
+          </div>
 
-        <div className="grid md:grid-cols-2 gap-8">
-          {insights.map((insight) => (
-            <article
-              key={insight.title}
-              className="bg-white p-12 shadow-[0_20px_80px_rgba(0,0,0,0.06)] hover:shadow-[0_30px_100px_rgba(0,0,0,0.08)] transition-all duration-500"
-            >
-              <p className="uppercase tracking-[0.18em] text-xs text-[#9C7A3C] mb-6">
-                {insight.category}
-              </p>
-
-              <h2 className="text-3xl font-serif leading-tight mb-6">
-                {insight.title}
-              </h2>
-
-              <p className="text-[#444444] leading-relaxed mb-8">
-                Educational reflections and strategic insights focused on transformational institutional impact.
-              </p>
-
-              <span className="uppercase tracking-[0.18em] text-xs text-[#9C7A3C]">
-                Coming Soon
-              </span>
-            </article>
-          ))}
+          <div className="grid lg:grid-cols-2 gap-10">
+            {featuredArticles.map((article) => (
+              <EditorialCard
+                key={article.title}
+                category={article.category}
+                title={article.title}
+                description={article.description}
+                href={article.href}
+              />
+            ))}
+          </div>
         </div>
-      </div>
-    </main>
+      </main>
+    </SiteLayout>
   )
 }
