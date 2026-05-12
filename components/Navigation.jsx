@@ -16,17 +16,18 @@ export default function Navigation() {
 
   return (
     <nav className="fixed top-0 left-0 right-0 z-50 border-b border-white/10 backdrop-blur-xl bg-black/40">
-      <div className="max-w-7xl mx-auto px-6 lg:px-12 py-6 flex items-center justify-between">
+      <div className="max-w-7xl mx-auto px-6 lg:px-12 py-7 flex items-center justify-between">
         <a href="/" className="block">
-          <p className="text-[#C8A96B] uppercase tracking-[0.35em] text-xs mb-1">
+          <p className="text-[#C8A96B] uppercase tracking-[0.35em] text-xs mb-2">
             get ACEd, LLC
           </p>
-          <h2 className="text-white text-xl font-serif">
+
+          <h2 className="text-white text-xl md:text-2xl font-serif leading-none tracking-[-0.02em]">
             Dr. Joel Stancer
           </h2>
         </a>
 
-        <div className="hidden lg:flex items-center gap-10 uppercase tracking-[0.18em] text-sm">
+        <div className="hidden lg:flex items-center gap-12 uppercase tracking-[0.18em] text-sm">
           {navigationItems.map((item) => {
             const isActive = pathname === item.href
 
