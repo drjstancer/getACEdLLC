@@ -7,18 +7,18 @@ export default function EditorialArticleLayout({
   children,
 }) {
   return (
-    <main className="bg-[#F5F2EB] text-[#111111] min-h-screen px-6 py-28 lg:px-12">
+    <main className="bg-[#F5F2EB] text-[#111111] min-h-screen px-6 py-32 lg:px-12">
       <article className="max-w-4xl mx-auto">
-        <div className="mb-20 border-b border-black/10 pb-16">
-          <p className="uppercase tracking-[0.35em] text-[#9C7A3C] text-xs mb-8">
+        <div className="mb-24 border-b border-black/10 pb-20">
+          <p className="uppercase tracking-[0.35em] text-[#9C7A3C] text-xs mb-10">
             {category}
           </p>
 
-          <h1 className="text-5xl md:text-7xl leading-[0.95] font-serif mb-10 max-w-5xl">
+          <h1 className="text-5xl md:text-7xl leading-[0.92] font-serif mb-12 max-w-5xl tracking-[-0.02em]">
             {title}
           </h1>
 
-          <p className="text-2xl leading-relaxed text-[#444444] max-w-3xl mb-12">
+          <p className="text-2xl leading-[1.8] text-[#444444] max-w-3xl mb-14">
             {description}
           </p>
 
@@ -29,7 +29,7 @@ export default function EditorialArticleLayout({
           </div>
         </div>
 
-        <div className="prose prose-lg max-w-none prose-headings:font-serif prose-headings:text-[#111111] prose-p:text-[#333333] prose-p:leading-loose prose-p:text-[1.15rem] prose-blockquote:border-l-[#C8A96B] prose-blockquote:text-[#555555] prose-strong:text-[#111111]">
+        <div className="prose prose-lg max-w-none prose-headings:font-serif prose-headings:text-[#111111] prose-headings:tracking-[-0.02em] prose-headings:mb-8 prose-p:text-[#333333] prose-p:leading-[2] prose-p:text-[1.18rem] prose-p:mb-10 prose-blockquote:border-l-[#C8A96B] prose-blockquote:text-[#555555] prose-blockquote:italic prose-blockquote:pl-6 prose-strong:text-[#111111]">
           {children}
         </div>
       </article>
