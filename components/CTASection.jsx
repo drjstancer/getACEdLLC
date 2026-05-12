@@ -1,3 +1,5 @@
+import InstitutionalCTA from './InstitutionalCTA'
+
 export default function CTASection() {
   return (
     <section className="py-36 bg-[#070707] text-center border-t border-white/10">
@@ -16,12 +18,9 @@ export default function CTASection() {
           Health First Aid training, and transformational speaking engagements.
         </p>
 
-        <a
-          href="/contact"
-          className="bg-[#C8A96B] text-black px-10 py-5 uppercase tracking-[0.18em] text-sm hover:bg-[#d7b980] transition-all duration-300 inline-block"
-        >
+        <InstitutionalCTA>
           Begin a Partnership Conversation
-        </a>
+        </InstitutionalCTA>
       </div>
     </section>
   )
