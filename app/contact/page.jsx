@@ -1,5 +1,5 @@
 import SiteLayout from '../../components/SiteLayout'
-import InstitutionalCTA from '../../components/InstitutionalCTA'
+import InstitutionalInquiryForm from '../../components/InstitutionalInquiryForm'
 
 export default function ContactPage() {
   return (
@@ -27,7 +27,7 @@ export default function ContactPage() {
                 Partnership Areas
               </p>
 
-              <div className="space-y-6 text-lg text-[#D8D3CA] leading-[1.9]">
+              <div className="space-y-6 text-lg text-[#D8D3CA] leading-[1.9] mb-12">
                 <p>• Institutional Strategy</p>
                 <p>• Leadership Development</p>
                 <p>• Educational Pathway Design</p>
@@ -35,53 +35,21 @@ export default function ContactPage() {
                 <p>• Adult Mental Health First Aid Training</p>
                 <p>• Student Success & Mentorship</p>
               </div>
+
+              <div className="border-t border-white/10 pt-10">
+                <p className="uppercase tracking-[0.18em] text-xs text-[#C8A96B] mb-5">
+                  Response Philosophy
+                </p>
+
+                <p className="text-[#D8D3CA] leading-[1.9] text-[1.02rem]">
+                  Each inquiry is reviewed thoughtfully to ensure alignment,
+                  intentional partnership development, and transformational
+                  impact.
+                </p>
+              </div>
             </div>
 
-            <form className="border border-white/10 bg-white/[0.03] p-12 space-y-8">
-              <div>
-                <label className="block uppercase tracking-[0.18em] text-xs text-[#C8A96B] mb-4">
-                  Name
-                </label>
-                <input
-                  type="text"
-                  className="w-full bg-black/30 border border-white/10 px-5 py-5 text-white outline-none focus:border-[#C8A96B] transition-all duration-300"
-                />
-              </div>
-
-              <div>
-                <label className="block uppercase tracking-[0.18em] text-xs text-[#C8A96B] mb-4">
-                  Organization
-                </label>
-                <input
-                  type="text"
-                  className="w-full bg-black/30 border border-white/10 px-5 py-5 text-white outline-none focus:border-[#C8A96B] transition-all duration-300"
-                />
-              </div>
-
-              <div>
-                <label className="block uppercase tracking-[0.18em] text-xs text-[#C8A96B] mb-4">
-                  Email
-                </label>
-                <input
-                  type="email"
-                  className="w-full bg-black/30 border border-white/10 px-5 py-5 text-white outline-none focus:border-[#C8A96B] transition-all duration-300"
-                />
-              </div>
-
-              <div>
-                <label className="block uppercase tracking-[0.18em] text-xs text-[#C8A96B] mb-4">
-                  Partnership Goals
-                </label>
-                <textarea
-                  rows="6"
-                  className="w-full bg-black/30 border border-white/10 px-5 py-5 text-white outline-none focus:border-[#C8A96B] transition-all duration-300"
-                />
-              </div>
-
-              <InstitutionalCTA href="#">
-                Submit Inquiry
-              </InstitutionalCTA>
-            </form>
+            <InstitutionalInquiryForm />
           </div>
         </div>
       </main>
