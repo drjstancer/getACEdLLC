@@ -1,12 +1,19 @@
+"use client"
+
+import { usePathname } from 'next/navigation'
+
 const navigationItems = [
   { label: 'Home', href: '/' },
   { label: 'About', href: '/about' },
   { label: 'Expertise', href: '/expertise' },
   { label: 'Speaking', href: '/speaking' },
+  { label: 'Insights', href: '/insights' },
   { label: 'Contact', href: '/contact' },
 ]
 
 export default function Navigation() {
+  const pathname = usePathname()
+
   return (
     <nav className="fixed top-0 left-0 right-0 z-50 border-b border-white/10 backdrop-blur-xl bg-black/40">
       <div className="max-w-7xl mx-auto px-6 lg:px-12 py-6 flex items-center justify-between">
@@ -19,16 +26,22 @@ export default function Navigation() {
           </h2>
         </a>
 
-        <div className="hidden lg:flex items-center gap-10 uppercase tracking-[0.18em] text-sm text-[#E8E3D9]">
-          {navigationItems.map((item) => (
-            <a
-              key={item.href}
-              href={item.href}
-              className="hover:text-[#C8A96B] transition-colors duration-300"
-            >
-              {item.label}
-            </a>
-          ))}
+        <div className="hidden lg:flex items-center gap-10 uppercase tracking-[0.18em] text-sm">
+          {navigationItems.map((item) => {
+            const isActive = pathname === item.href
+
+            return (
+              <a
+                key={item.href}
+                href={item.href}
+                className={`transition-all duration-300 hover:text-[#C8A96B] ${
+                  isActive ? 'text-[#C8A96B]' : 'text-[#E8E3D9]'
+                }`}
+              >
+                {item.label}
+              </a>
+            )
+          })}
         </div>
       </div>
     </nav>
