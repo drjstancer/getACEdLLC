@@ -16,10 +16,10 @@ export const metadata = {
     siteName: 'get ACEd, LLC',
     images: [
       {
-        url: '/hero-drj.png',
+        url: '/og-getaced.png',
         width: 1200,
         height: 630,
-        alt: 'Dr. Joel Stancer | get ACEd, LLC',
+        alt: 'get ACEd, LLC | Transformational Educational Leadership',
       },
     ],
     locale: 'en_US',
@@ -30,7 +30,7 @@ export const metadata = {
     title: 'get ACEd, LLC | Dr. Joel Stancer',
     description:
       'Transformational educational leadership rooted in mentorship, institutional strategy, pathway development, culture, and community-centered excellence.',
-    images: ['/hero-drj.png'],
+    images: ['/og-getaced.png'],
   },
   icons: {
     icon: '/brand/favicons/getaced-favicon.png',
