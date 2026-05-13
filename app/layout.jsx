@@ -33,9 +33,9 @@ export const metadata = {
     images: ['/hero-drj.png'],
   },
   icons: {
-    icon: '/icon.svg',
-    shortcut: '/icon.svg',
-    apple: '/icon.svg',
+    icon: '/brand/favicons/getaced-favicon.png',
+    shortcut: '/brand/favicons/getaced-favicon.png',
+    apple: '/brand/favicons/getaced-favicon.png',
   },
 }
 
