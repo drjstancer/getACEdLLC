@@ -39,8 +39,16 @@ export default function Footer() {
 
           <div className="space-y-5 text-[#D8D3CA] leading-[1.9] text-[1.02rem]">
             <p>Columbia, Missouri</p>
-            <p>hello@getacedllc.com</p>
-            <p>Institutional Consulting & Thought Leadership</p>
+            <div>
+              <p className="text-[#C8A96B]">Booking &amp; Partnership Inquiries</p>
+              <a
+                href="mailto:booking@getacedllc.com"
+                className="hover:text-white transition-colors duration-300"
+              >
+                booking@getacedllc.com
+              </a>
+            </div>
+            <p>Institutional Consulting &amp; Thought Leadership</p>
           </div>
         </div>
       </div>
