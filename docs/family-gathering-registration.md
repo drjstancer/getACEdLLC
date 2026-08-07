@@ -151,6 +151,11 @@ function jsonResponse(payload) {
     .createTextOutput(JSON.stringify(payload))
     .setMimeType(ContentService.MimeType.JSON);
 }
+
+function testAccess() {
+  const ss = SpreadsheetApp.openById(SPREADSHEET_ID);
+  Logger.log(ss.getName());
+}
 ```
 
 ## PayPal setup
@@ -166,7 +171,7 @@ The code creates a draft invoice and then sends it to the recipient. PayPal requ
 
 Preview deployments are triggered from the `agent/family-gathering-registration` branch. If the Vercel redeploy picker only shows `main`, push a harmless commit to this branch so Vercel creates a fresh preview deployment with the latest Preview environment variables.
 
-Last forced preview refresh: 2026-08-06 23:52 Central.
+Last forced preview refresh: 2026-08-07 00:09 Central.
 
 ## Important caution
 
