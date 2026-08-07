@@ -98,22 +98,15 @@ async function createAndSendPayPalInvoice({
           invoice_date: today,
           currency_code: 'USD',
           note:
-            'The Family Gathering 2026 registration. Includes registration, food, and t-shirt.',
+            'The Family Gathering 2026 registration. Includes registration, food, and t-shirt. Payment is due October 15, 2026.',
           payment_term: {
-            term_type: 'DUE_ON_DATE',
-            due_date: '2026-10-15',
-          },
-        },
-        invoicer: {
-          name: {
-            given_name: 'get ACEd',
-            surname: 'LLC',
+            term_type: 'DUE_ON_RECEIPT',
           },
         },
         primary_recipients: [
           {
             billing_info: {
-              email_address: primary.email,
+              email_address: cleanString(primary.email),
               name: {
                 given_name: givenName,
                 surname,
@@ -126,19 +119,15 @@ async function createAndSendPayPalInvoice({
             name: 'The Family Gathering 2026 Registration',
             description: `${attendeeCount} registrant${
               attendeeCount === 1 ? '' : 's'
-            } for Thanksgiving Day, Thursday, November 26, 2026.`,
+            } for Thanksgiving Day, Thursday, November 26, 2026. Payment is due October 15, 2026.`,
             quantity: '1',
             unit_amount: {
               currency_code: 'USD',
               value: totalCost.toFixed(2),
             },
+            unit_of_measure: 'QUANTITY',
           },
         ],
-        configuration: {
-          tax_calculated_after_discount: true,
-          tax_inclusive: false,
-          allow_tip: false,
-        },
       }),
     }
   )
@@ -147,7 +136,10 @@ async function createAndSendPayPalInvoice({
 
   if (!invoiceResponse.ok) {
     throw new Error(
-      invoiceData.message || invoiceData.error || 'Unable to create invoice.'
+      invoiceData.details?.[0]?.description ||
+        invoiceData.message ||
+        invoiceData.error ||
+        'Unable to create invoice.'
     )
   }
 
@@ -174,7 +166,10 @@ async function createAndSendPayPalInvoice({
   if (!sendResponse.ok) {
     const sendData = await sendResponse.json()
     throw new Error(
-      sendData.message || sendData.error || 'Invoice created but not sent.'
+      sendData.details?.[0]?.description ||
+        sendData.message ||
+        sendData.error ||
+        'Invoice created but not sent.'
     )
   }
 
@@ -287,7 +282,20 @@ async function saveRegistrationToAppsScript({ registration, attendees }) {
   try {
     data = text ? JSON.parse(text) : {}
   } catch (error) {
-    throw new Error('The Apps Script response was not valid JSON.')
+    const snippet = text
+      .slice(0, 180)
+      .replace(/\s+/g, ' ')
+      .trim()
+
+    console.error('Apps Script non-JSON response:', {
+      status: response.status,
+      contentType: response.headers.get('content-type'),
+      snippet,
+    })
+
+    throw new Error(
+      'Apps Script did not return JSON. Check that the Web App URL ends in /exec, is deployed, authorized, and set to Anyone access.'
+    )
   }
 
   if (!response.ok || data.success === false) {
