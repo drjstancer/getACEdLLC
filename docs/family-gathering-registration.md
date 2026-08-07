@@ -15,6 +15,7 @@ This feature adds an unlisted registration page at `/family-gathering` for The F
 - Saves registration data to the Google Sheet created for the Hill/Broom Family folder through an Apps Script web app.
 - Sends confirmation emails when Resend is configured.
 - Attempts to create and send a PayPal invoice when PayPal is selected and credentials are configured.
+- Stores PayPal payer-view invoice links rather than authenticated PayPal API URLs.
 
 ## Google Sheet
 
@@ -24,11 +25,18 @@ Spreadsheet ID:
 1ty6RjSSfDrrgswdhnGO5cbmhzcybKZ32hV-YmhH6Kyg
 ```
 
-The Apps Script appends rows to these tabs:
+The Apps Script appends rows to these live tabs:
 
 - `Primary Registrations`
 - `Attendees`
-- `Payment Summary`
+- `Payment Log`
+
+The workbook also includes:
+
+- `Payment Summary` for formula-driven payment totals.
+- `T-Shirt Summary` for formula-driven shirt counts.
+- `Test Submissions` for archived testing data.
+- `Settings` for reference values.
 
 ## Required environment variables
 
@@ -45,6 +53,20 @@ RESEND_API_KEY=
 ```
 
 `CONTACT_EMAIL` can remain available for the general website contact form. The Family Gathering registration flow uses `FAMILY_GATHERING_ADMIN_EMAIL` first and `FAMILY_GATHERING_CONTACT_EMAIL` as the fallback.
+
+## Production environment variables
+
+Before merging this feature into `main`, set the same required variables in Vercel for the `Production` environment.
+
+For production PayPal, use:
+
+```bash
+PAYPAL_BASE_URL=https://api-m.paypal.com
+PAYPAL_CLIENT_ID=<live PayPal client ID>
+PAYPAL_CLIENT_SECRET=<live PayPal client secret>
+```
+
+Keep the production Apps Script URL and form secret consistent with the deployed Apps Script web app. Do not reuse sandbox PayPal credentials in production.
 
 ## Google Apps Script setup
 
@@ -81,7 +103,7 @@ function doPost(e) {
     const ss = SpreadsheetApp.openById(SPREADSHEET_ID);
     const primarySheet = ss.getSheetByName('Primary Registrations');
     const attendeesSheet = ss.getSheetByName('Attendees');
-    const paymentSheet = ss.getSheetByName('Payment Summary');
+    const paymentSheet = ss.getSheetByName('Payment Log');
 
     const registration = body.registration;
     const attendees = body.attendees || [];
@@ -165,13 +187,32 @@ function testAccess() {
 3. Test first with `PAYPAL_BASE_URL=https://api-m.sandbox.paypal.com`.
 4. After successful test invoices, switch production to `https://api-m.paypal.com`.
 
-The code creates a draft invoice and then sends it to the recipient. PayPal requires the send step before the invoice becomes payable.
+The code creates a draft invoice, sends it to the recipient, fetches invoice details, and stores the payer-view invoice link when PayPal provides one.
+
+## Production cutover checklist
+
+Do not merge until these are complete:
+
+1. `Payment Summary` formulas show zero with no active registrations and update after a new live row.
+2. `T-Shirt Summary` formulas show zero with no active attendees and update after a new live row.
+3. All test data is archived in `Test Submissions`; live tabs start clean at row 2.
+4. Vercel `Production` has all required Family Gathering variables.
+5. Vercel `Production` PayPal variables use live PayPal credentials, not sandbox credentials.
+6. After merge, submit one production test using Cash first.
+7. After the Cash production test saves, submit one PayPal production test using a real invoice recipient.
+8. Archive or delete production test rows before sharing the registration link publicly.
 
 ## Deployment notes
 
 Preview deployments are triggered from the `agent/family-gathering-registration` branch. If the Vercel redeploy picker only shows `main`, push a harmless commit to this branch so Vercel creates a fresh preview deployment with the latest Preview environment variables.
 
-Last forced preview refresh: 2026-08-07 00:09 Central.
+Latest completed testing:
+
+- Cash: passed.
+- CashApp: passed.
+- Money Order: passed.
+- PayPal sandbox invoice: passed.
+- PayPal payer-view invoice link: passed.
 
 ## Important caution
 
