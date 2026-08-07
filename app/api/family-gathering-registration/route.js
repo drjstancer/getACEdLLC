@@ -1,11 +1,7 @@
-import crypto from 'crypto'
+import { randomUUID } from 'crypto'
 import { resend } from '../../../lib/resend'
 
 export const runtime = 'nodejs'
-
-const SPREADSHEET_ID =
-  process.env.FAMILY_GATHERING_SPREADSHEET_ID ||
-  '1ty6RjSSfDrrgswdhnGO5cbmhzcybKZ32hV-YmhH6Kyg'
 
 const PAYMENT_INSTRUCTIONS = {
   Cash: 'Hand-deliver payment to Anita Prude.',
@@ -39,101 +35,6 @@ function splitName(fullName) {
     givenName: parts[0],
     surname: parts.slice(1).join(' '),
   }
-}
-
-function base64Url(input) {
-  return Buffer.from(input)
-    .toString('base64')
-    .replace(/=/g, '')
-    .replace(/\+/g, '-')
-    .replace(/\//g, '_')
-}
-
-function signJwt(unsignedToken, privateKey) {
-  return crypto
-    .createSign('RSA-SHA256')
-    .update(unsignedToken)
-    .sign(privateKey, 'base64')
-    .replace(/=/g, '')
-    .replace(/\+/g, '-')
-    .replace(/\//g, '_')
-}
-
-async function getGoogleAccessToken() {
-  const serviceAccountEmail = process.env.GOOGLE_SERVICE_ACCOUNT_EMAIL
-  const privateKey = process.env.GOOGLE_PRIVATE_KEY?.replace(/\\n/g, '\n')
-
-  if (!serviceAccountEmail || !privateKey) {
-    throw new Error('Google Sheets credentials are not configured.')
-  }
-
-  const issuedAt = Math.floor(Date.now() / 1000)
-  const expiresAt = issuedAt + 3600
-
-  const header = {
-    alg: 'RS256',
-    typ: 'JWT',
-  }
-
-  const payload = {
-    iss: serviceAccountEmail,
-    scope: 'https://www.googleapis.com/auth/spreadsheets',
-    aud: 'https://oauth2.googleapis.com/token',
-    exp: expiresAt,
-    iat: issuedAt,
-  }
-
-  const unsignedToken = `${base64Url(JSON.stringify(header))}.${base64Url(
-    JSON.stringify(payload)
-  )}`
-
-  const assertion = `${unsignedToken}.${signJwt(unsignedToken, privateKey)}`
-
-  const response = await fetch('https://oauth2.googleapis.com/token', {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/x-www-form-urlencoded',
-    },
-    body: new URLSearchParams({
-      grant_type: 'urn:ietf:params:oauth:grant-type:jwt-bearer',
-      assertion,
-    }),
-  })
-
-  const data = await response.json()
-
-  if (!response.ok) {
-    throw new Error(data.error_description || 'Unable to authenticate Google.')
-  }
-
-  return data.access_token
-}
-
-async function appendRows({ accessToken, range, rows }) {
-  const encodedRange = encodeURIComponent(range)
-  const response = await fetch(
-    `https://sheets.googleapis.com/v4/spreadsheets/${SPREADSHEET_ID}/values/${encodedRange}:append?valueInputOption=USER_ENTERED&insertDataOption=INSERT_ROWS`,
-    {
-      method: 'POST',
-      headers: {
-        Authorization: `Bearer ${accessToken}`,
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        values: rows,
-      }),
-    }
-  )
-
-  const data = await response.json()
-
-  if (!response.ok) {
-    throw new Error(
-      data.error?.message || `Unable to append rows to ${range}.`
-    )
-  }
-
-  return data
 }
 
 function getPayPalBaseUrl() {
@@ -360,6 +261,44 @@ function validatePayload({ primary, additionalRegistrants, paymentMethod }) {
   return ''
 }
 
+async function saveRegistrationToAppsScript({ registration, attendees }) {
+  const appsScriptUrl = process.env.FAMILY_GATHERING_APPS_SCRIPT_URL
+  const secret = process.env.FAMILY_GATHERING_FORM_SECRET
+
+  if (!appsScriptUrl || !secret) {
+    throw new Error('Family Gathering Apps Script endpoint is not configured.')
+  }
+
+  const response = await fetch(appsScriptUrl, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'text/plain;charset=utf-8',
+    },
+    body: JSON.stringify({
+      secret,
+      registration,
+      attendees,
+    }),
+  })
+
+  const text = await response.text()
+  let data = {}
+
+  try {
+    data = text ? JSON.parse(text) : {}
+  } catch (error) {
+    throw new Error('The Apps Script response was not valid JSON.')
+  }
+
+  if (!response.ok || data.success === false) {
+    throw new Error(
+      data.error || 'Unable to save the registration to Google Sheets.'
+    )
+  }
+
+  return data
+}
+
 async function sendEmails({
   primary,
   attendees,
@@ -368,12 +307,15 @@ async function sendEmails({
   paymentMethod,
   paymentInstructions,
   paypalInvoiceUrl,
+  warning,
 }) {
   if (!process.env.RESEND_API_KEY) {
     return
   }
 
-  const adminEmail = process.env.FAMILY_GATHERING_ADMIN_EMAIL || process.env.CONTACT_EMAIL
+  const adminEmail =
+    process.env.FAMILY_GATHERING_ADMIN_EMAIL ||
+    process.env.FAMILY_GATHERING_CONTACT_EMAIL
 
   const attendeeListHtml = attendees
     .map(
@@ -406,6 +348,11 @@ async function sendEmails({
           <p><strong>Phone:</strong> ${primary.phone}</p>
           <p><strong>Payment Method:</strong> ${paymentMethod}</p>
           <p><strong>Total:</strong> $${totalCost}</p>
+          ${
+            warning
+              ? `<p style="color: #92400e;"><strong>Warning:</strong> ${warning}</p>`
+              : ''
+          }
 
           <h3>Registrants</h3>
           <table style="border-collapse: collapse; width: 100%;">
@@ -447,6 +394,11 @@ async function sendEmails({
               ? `<p><a href="${paypalInvoiceUrl}">View PayPal invoice</a></p>`
               : ''
           }
+          ${
+            warning
+              ? `<p style="color: #92400e;"><strong>Note:</strong> ${warning}</p>`
+              : ''
+          }
         </div>
 
         <p>
@@ -479,23 +431,20 @@ export async function POST(request) {
 
     const attendees = normalizeAttendees(primary, additionalRegistrants)
     const attendeeCount = attendees.length
-    const adultCount = attendees.filter((attendee) => attendee.age >= 12).length
-    const childCount = attendees.filter((attendee) => attendee.age < 12).length
     const totalCost = attendees.reduce(
       (sum, attendee) => sum + attendeePrice(attendee.age),
       0
     )
-
+    const paymentInstructions = PAYMENT_INSTRUCTIONS[paymentMethod]
     const submittedAt = new Date().toISOString()
-    const registrationId = `TFG-${Date.now()}-${Math.random()
-      .toString(36)
-      .slice(2, 7)
+    const registrationId = `TFG-${submittedAt.slice(0, 10).replace(/-/g, '')}-${randomUUID()
+      .slice(0, 8)
       .toUpperCase()}`
 
-    let paymentInstructions = PAYMENT_INSTRUCTIONS[paymentMethod]
     let paypalInvoiceId = ''
     let paypalInvoiceUrl = ''
     let warning = ''
+    let paymentStatus = 'Payment Pending'
 
     if (paymentMethod === 'PayPal') {
       try {
@@ -506,80 +455,45 @@ export async function POST(request) {
           attendeeCount,
         })
 
-        paypalInvoiceId = invoice.invoiceId
+        paypalInvoiceId = invoice.invoiceId || ''
         paypalInvoiceUrl = invoice.invoiceUrl || ''
-      } catch (invoiceError) {
-        console.error('PayPal invoice error:', invoiceError)
+        paymentStatus = 'PayPal Invoice Sent'
+      } catch (paypalError) {
+        console.error('PayPal invoice error:', paypalError)
+        paymentStatus = 'PayPal Invoice Pending Manual Follow-Up'
         warning =
-          'The registration was submitted, but the PayPal invoice could not be created automatically. get ACEd, LLC will need to send the invoice manually.'
+          'Your registration was received, but the PayPal invoice could not be created automatically. A manual invoice will be sent to the email address provided.'
       }
     }
 
-    const accessToken = await getGoogleAccessToken()
+    const attendeesForSheet = attendees.map((attendee) => ({
+      ...attendee,
+      price: attendeePrice(attendee.age),
+    }))
 
-    await appendRows({
-      accessToken,
-      range: "'Primary Registrations'!A:Q",
-      rows: [
-        [
-          submittedAt,
-          registrationId,
-          primary.fullName,
-          primary.age,
-          primary.email,
-          primary.phone,
-          primary.address || '',
-          primary.tShirtSize,
-          attendeeCount,
-          adultCount,
-          childCount,
-          totalCost,
-          paymentMethod,
-          paymentMethod === 'PayPal' && paypalInvoiceId
-            ? 'Invoice Sent'
-            : 'Payment Pending',
-          paypalInvoiceId,
-          paypalInvoiceUrl,
-          warning,
-        ],
-      ],
-    })
+    const registration = {
+      submittedAt,
+      registrationId,
+      primaryFullName: cleanString(primary.fullName),
+      primaryAge: Number(primary.age),
+      primaryEmail: cleanString(primary.email),
+      primaryPhone: cleanString(primary.phone),
+      primaryAddress: cleanString(primary.address),
+      primaryTShirtSize: cleanString(primary.tShirtSize),
+      attendeeCount,
+      totalCost,
+      paymentMethod,
+      paymentStatus,
+      paymentInstructions,
+      paypalInvoiceId,
+      paypalInvoiceUrl,
+      notes: warning,
+      source: 'get ACEd website',
+    }
 
-    await appendRows({
-      accessToken,
-      range: "'Attendees'!A:K",
-      rows: attendees.map((attendee, index) => [
-        submittedAt,
-        registrationId,
-        index + 1,
-        attendee.type,
-        attendee.fullName,
-        attendee.age,
-        attendeePrice(attendee.age),
-        attendee.tShirtSize,
-        attendee.contactName,
-        attendee.contactEmail,
-        attendee.contactPhone,
-      ]),
-    })
-
-    await appendRows({
-      accessToken,
-      range: "'Payment Summary'!A:H",
-      rows: [
-        [
-          submittedAt,
-          registrationId,
-          primary.fullName,
-          primary.email,
-          totalCost,
-          paymentMethod,
-          paymentMethod === 'PayPal' && paypalInvoiceId
-            ? 'Invoice Sent'
-            : 'Payment Pending',
-          paymentInstructions,
-        ],
-      ],
+    await saveRegistrationToAppsScript({
+      registration,
+      attendees: attendeesForSheet,
     })
 
     await sendEmails({
@@ -590,19 +504,17 @@ export async function POST(request) {
       paymentMethod,
       paymentInstructions,
       paypalInvoiceUrl,
+      warning,
     })
 
     return Response.json({
       success: true,
       registrationId,
-      primaryName: primary.fullName,
+      primaryName: cleanString(primary.fullName),
       attendeeCount,
-      adultCount,
-      childCount,
       totalCost,
       paymentMethod,
       paymentInstructions,
-      paypalInvoiceId,
       paypalInvoiceUrl,
       warning,
     })
@@ -612,7 +524,8 @@ export async function POST(request) {
     return Response.json(
       {
         error:
-          'Something went wrong submitting the registration. Please try again or contact the organizer.',
+          error.message ||
+          'Something went wrong while submitting the registration.',
       },
       { status: 500 }
     )
