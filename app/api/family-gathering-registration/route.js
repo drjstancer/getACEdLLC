@@ -41,6 +41,10 @@ function getPayPalBaseUrl() {
   return process.env.PAYPAL_BASE_URL || 'https://api-m.paypal.com'
 }
 
+function isPayerViewUrl(url) {
+  return typeof url === 'string' && url.includes('/invoice/p')
+}
+
 async function getPayPalAccessToken() {
   const clientId = process.env.PAYPAL_CLIENT_ID
   const clientSecret = process.env.PAYPAL_CLIENT_SECRET
@@ -71,6 +75,42 @@ async function getPayPalAccessToken() {
   }
 
   return data.access_token
+}
+
+async function readPayPalJson(response) {
+  const text = await response.text()
+
+  if (!text) {
+    return {}
+  }
+
+  try {
+    return JSON.parse(text)
+  } catch (error) {
+    return {}
+  }
+}
+
+async function getPayPalInvoiceDetails({ invoiceId, accessToken }) {
+  const response = await fetch(
+    `${getPayPalBaseUrl()}/v2/invoicing/invoices/${invoiceId}`,
+    {
+      method: 'GET',
+      headers: {
+        Authorization: `Bearer ${accessToken}`,
+        'Content-Type': 'application/json',
+      },
+    }
+  )
+
+  const data = await readPayPalJson(response)
+
+  if (!response.ok) {
+    console.warn('Unable to retrieve PayPal invoice details:', data)
+    return {}
+  }
+
+  return data
 }
 
 async function createAndSendPayPalInvoice({
@@ -132,7 +172,7 @@ async function createAndSendPayPalInvoice({
     }
   )
 
-  const invoiceData = await invoiceResponse.json()
+  const invoiceData = await readPayPalJson(invoiceResponse)
 
   if (!invoiceResponse.ok) {
     throw new Error(
@@ -163,8 +203,9 @@ async function createAndSendPayPalInvoice({
     }
   )
 
+  const sendData = await readPayPalJson(sendResponse)
+
   if (!sendResponse.ok) {
-    const sendData = await sendResponse.json()
     throw new Error(
       sendData.details?.[0]?.description ||
         sendData.message ||
@@ -173,11 +214,20 @@ async function createAndSendPayPalInvoice({
     )
   }
 
+  const invoiceDetails = await getPayPalInvoiceDetails({
+    invoiceId,
+    accessToken,
+  })
+
+  const invoiceUrlCandidates = [
+    invoiceDetails.metadata?.recipient_view_url,
+    sendData?.rel === 'payer-view' ? sendData.href : '',
+    invoiceData.metadata?.recipient_view_url,
+    invoiceData.links?.find((link) => link.rel === 'payer-view')?.href,
+  ].filter(Boolean)
+
   const invoiceUrl =
-    invoiceData.links?.find((link) => link.rel === 'payer-view')?.href ||
-    invoiceData.links?.find((link) => link.rel === 'self')?.href ||
-    invoiceData.href ||
-    null
+    invoiceUrlCandidates.find((candidate) => isPayerViewUrl(candidate)) || ''
 
   return {
     invoiceId,
