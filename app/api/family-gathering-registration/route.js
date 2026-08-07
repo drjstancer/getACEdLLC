@@ -519,7 +519,7 @@ export async function POST(request) {
 
     await appendRows({
       accessToken,
-      range: 'Primary Registrations!A:Q',
+      range: "'Primary Registrations'!A:Q",
       rows: [
         [
           submittedAt,
@@ -547,7 +547,7 @@ export async function POST(request) {
 
     await appendRows({
       accessToken,
-      range: 'Attendees!A:K',
+      range: "'Attendees'!A:K",
       rows: attendees.map((attendee, index) => [
         submittedAt,
         registrationId,
@@ -565,7 +565,7 @@ export async function POST(request) {
 
     await appendRows({
       accessToken,
-      range: 'Payment Summary!A:H',
+      range: "'Payment Summary'!A:H",
       rows: [
         [
           submittedAt,
