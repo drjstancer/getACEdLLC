@@ -278,8 +278,9 @@ async function createAndSendPayPalInvoice({
   }
 
   const invoiceUrl =
-    invoiceData.href ||
+    invoiceData.links?.find((link) => link.rel === 'payer-view')?.href ||
     invoiceData.links?.find((link) => link.rel === 'self')?.href ||
+    invoiceData.href ||
     null
 
   return {
