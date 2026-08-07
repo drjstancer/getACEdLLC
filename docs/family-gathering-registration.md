@@ -12,7 +12,7 @@ This feature adds an unlisted registration page at `/family-gathering` for The F
   - `$50` for ages `12 and up`
   - `$25` for registrants `under 12`
 - Lets the registrant choose Cash, Money Order, CashApp, or PayPal.
-- Saves registration data to the Google Sheet created for the Hill/Broom Family folder.
+- Saves registration data to the Google Sheet created for the Hill/Broom Family folder through an Apps Script web app.
 - Sends confirmation emails when Resend is configured.
 - Attempts to create and send a PayPal invoice when PayPal is selected and credentials are configured.
 
@@ -24,7 +24,7 @@ Spreadsheet ID:
 1ty6RjSSfDrrgswdhnGO5cbmhzcybKZ32hV-YmhH6Kyg
 ```
 
-The API route appends rows to these tabs:
+The Apps Script appends rows to these tabs:
 
 - `Primary Registrations`
 - `Attendees`
@@ -35,24 +35,123 @@ The API route appends rows to these tabs:
 ```bash
 FAMILY_GATHERING_SPREADSHEET_ID=1ty6RjSSfDrrgswdhnGO5cbmhzcybKZ32hV-YmhH6Kyg
 FAMILY_GATHERING_ADMIN_EMAIL=
-GOOGLE_SERVICE_ACCOUNT_EMAIL=
-GOOGLE_PRIVATE_KEY="-----BEGIN PRIVATE KEY-----\n...\n-----END PRIVATE KEY-----\n"
-PAYPAL_BASE_URL=https://api-m.paypal.com
+FAMILY_GATHERING_CONTACT_EMAIL=
+FAMILY_GATHERING_APPS_SCRIPT_URL=
+FAMILY_GATHERING_FORM_SECRET=
+PAYPAL_BASE_URL=https://api-m.sandbox.paypal.com
 PAYPAL_CLIENT_ID=
 PAYPAL_CLIENT_SECRET=
 RESEND_API_KEY=
-CONTACT_EMAIL=
 ```
 
-## Google Sheets setup
+`CONTACT_EMAIL` can remain available for the general website contact form. The Family Gathering registration flow uses `FAMILY_GATHERING_ADMIN_EMAIL` first and `FAMILY_GATHERING_CONTACT_EMAIL` as the fallback.
 
-1. Create or use a Google Cloud service account.
-2. Enable the Google Sheets API for the Google Cloud project.
-3. Create a private key for the service account.
-4. Add the service account email and private key to the deployment environment variables.
-5. Share the registration tracker spreadsheet with the service account email as an editor.
+## Google Apps Script setup
 
-The registration endpoint writes to Google Sheets using the Sheets API `spreadsheets.values.append` method.
+Because some Google organizations block service account JSON key creation, this registration flow uses a Google Apps Script web app instead of a service account private key.
+
+1. Open the registration tracker spreadsheet.
+2. Go to `Extensions` → `Apps Script`.
+3. Add the Apps Script code below.
+4. In Apps Script, go to `Project Settings` → `Script Properties`.
+5. Add a script property named `FAMILY_GATHERING_FORM_SECRET`.
+6. Use the same secret value in Vercel as `FAMILY_GATHERING_FORM_SECRET`.
+7. Deploy the script as a web app:
+   - Execute as: `Me`
+   - Who has access: `Anyone`
+8. Copy the web app URL into Vercel as `FAMILY_GATHERING_APPS_SCRIPT_URL`.
+
+```javascript
+const SPREADSHEET_ID = '1ty6RjSSfDrrgswdhnGO5cbmhzcybKZ32hV-YmhH6Kyg';
+
+function doPost(e) {
+  try {
+    const body = JSON.parse(e.postData.contents);
+    const expectedSecret = PropertiesService
+      .getScriptProperties()
+      .getProperty('FAMILY_GATHERING_FORM_SECRET');
+
+    if (!expectedSecret || body.secret !== expectedSecret) {
+      return jsonResponse({
+        success: false,
+        error: 'Unauthorized request.'
+      });
+    }
+
+    const ss = SpreadsheetApp.openById(SPREADSHEET_ID);
+    const primarySheet = ss.getSheetByName('Primary Registrations');
+    const attendeesSheet = ss.getSheetByName('Attendees');
+    const paymentSheet = ss.getSheetByName('Payment Summary');
+
+    const registration = body.registration;
+    const attendees = body.attendees || [];
+
+    primarySheet.appendRow([
+      registration.submittedAt,
+      registration.registrationId,
+      registration.primaryFullName,
+      registration.primaryAge,
+      registration.primaryEmail,
+      registration.primaryPhone,
+      registration.primaryAddress,
+      registration.primaryTShirtSize,
+      registration.attendeeCount,
+      registration.totalCost,
+      registration.paymentMethod,
+      registration.paymentStatus,
+      registration.paymentInstructions,
+      registration.paypalInvoiceId || '',
+      registration.paypalInvoiceUrl || '',
+      registration.notes || '',
+      registration.source || 'Website'
+    ]);
+
+    attendees.forEach((attendee) => {
+      attendeesSheet.appendRow([
+        registration.submittedAt,
+        registration.registrationId,
+        attendee.type,
+        attendee.fullName,
+        attendee.age,
+        attendee.price,
+        attendee.tShirtSize,
+        attendee.contactName,
+        attendee.contactEmail,
+        attendee.contactPhone,
+        registration.paymentMethod
+      ]);
+    });
+
+    paymentSheet.appendRow([
+      registration.submittedAt,
+      registration.registrationId,
+      registration.primaryFullName,
+      registration.primaryEmail,
+      registration.paymentMethod,
+      registration.totalCost,
+      registration.paymentStatus,
+      registration.paymentInstructions
+    ]);
+
+    return jsonResponse({
+      success: true,
+      registrationId: registration.registrationId
+    });
+
+  } catch (error) {
+    return jsonResponse({
+      success: false,
+      error: error.message
+    });
+  }
+}
+
+function jsonResponse(payload) {
+  return ContentService
+    .createTextOutput(JSON.stringify(payload))
+    .setMimeType(ContentService.MimeType.JSON);
+}
+```
 
 ## PayPal setup
 
@@ -65,4 +164,4 @@ The code creates a draft invoice and then sends it to the recipient. PayPal requ
 
 ## Important caution
 
-Do not commit private keys, PayPal secrets, or API credentials to GitHub. Keep them only in the hosting provider's environment variable settings.
+Do not commit private keys, PayPal secrets, API credentials, or form secrets to GitHub. Keep them only in the hosting provider's environment variable settings.
