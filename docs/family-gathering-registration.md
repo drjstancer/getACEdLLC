@@ -162,6 +162,12 @@ function jsonResponse(payload) {
 
 The code creates a draft invoice and then sends it to the recipient. PayPal requires the send step before the invoice becomes payable.
 
+## Deployment notes
+
+Preview deployments are triggered from the `agent/family-gathering-registration` branch. If the Vercel redeploy picker only shows `main`, push a harmless commit to this branch so Vercel creates a fresh preview deployment with the latest Preview environment variables.
+
+Last forced preview refresh: 2026-08-06 23:52 Central.
+
 ## Important caution
 
 Do not commit private keys, PayPal secrets, API credentials, or form secrets to GitHub. Keep them only in the hosting provider's environment variable settings.
