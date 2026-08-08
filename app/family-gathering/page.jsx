@@ -136,7 +136,10 @@ export default function FamilyGatheringPage() {
           </div>
 
           <div className="border border-[#D7B988] bg-[#F7ECD8] p-3 shadow-[0_24px_60px_rgba(92,52,25,0.10)]">
-            <div className="border border-[#E6CC9F] bg-[linear-gradient(180deg,_rgba(255,248,236,0.92),_rgba(252,243,228,0.98))] p-4 sm:p-6 lg:p-8">
+            <div
+              data-family-gathering-form
+              className="border border-[#E6CC9F] bg-[linear-gradient(180deg,_rgba(255,248,236,0.92),_rgba(252,243,228,0.98))] p-4 sm:p-6 lg:p-8"
+            >
               <FamilyGatheringRegistrationForm />
             </div>
           </div>
