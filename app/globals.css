@@ -58,3 +58,81 @@ button {
     color var(--transition-standard),
     transform var(--transition-standard);
 }
+
+[data-family-gathering-form] > div {
+  background: #F9EED8 !important;
+  border-color: #D9C4A0 !important;
+  color: #4B2818 !important;
+}
+
+[data-family-gathering-form] div,
+[data-family-gathering-form] section {
+  border-color: #D9C4A0 !important;
+}
+
+[data-family-gathering-form] h2,
+[data-family-gathering-form] h3,
+[data-family-gathering-form] p,
+[data-family-gathering-form] strong,
+[data-family-gathering-form] label {
+  color: #4B2818 !important;
+}
+
+[data-family-gathering-form] span,
+[data-family-gathering-form] label > span,
+[data-family-gathering-form] p[class*="tracking"] {
+  color: #B56425 !important;
+}
+
+[data-family-gathering-form] input:not([type="checkbox"]):not([type="radio"]),
+[data-family-gathering-form] select {
+  background: #FFF8EC !important;
+  border-color: #D8B27D !important;
+  color: #4B2818 !important;
+}
+
+[data-family-gathering-form] input::placeholder {
+  color: #9A7957 !important;
+}
+
+[data-family-gathering-form] input:focus,
+[data-family-gathering-form] select:focus {
+  border-color: #C66A27 !important;
+  background: #FFFFFF !important;
+}
+
+[data-family-gathering-form] button[type="submit"],
+[data-family-gathering-form] button[type="button"]:not([class*="red"]),
+[data-family-gathering-form] a[href*="paypal"] {
+  background: #B56425 !important;
+  border-color: #B56425 !important;
+  color: #FFF7E8 !important;
+}
+
+[data-family-gathering-form] button[type="submit"]:hover,
+[data-family-gathering-form] button[type="button"]:not([class*="red"]):hover,
+[data-family-gathering-form] a[href*="paypal"]:hover {
+  background: #8F4314 !important;
+  border-color: #8F4314 !important;
+  color: #FFF7E8 !important;
+}
+
+[data-family-gathering-form] button[type="button"][class*="red"],
+[data-family-gathering-form] button[type="button"][class*="Remove"] {
+  background: transparent !important;
+  border-color: transparent !important;
+  color: #8A2F12 !important;
+}
+
+[data-family-gathering-form] form > section,
+[data-family-gathering-form] form > div,
+[data-family-gathering-form] [class*="bg-black"],
+[data-family-gathering-form] [class*="bg-white"] {
+  background-color: #FFF7E8 !important;
+}
+
+[data-family-gathering-form] [class*="border-dashed"] {
+  background: #FFF7E8 !important;
+  border-color: #D8B27D !important;
+  color: #7D5E46 !important;
+}
