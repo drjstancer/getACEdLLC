@@ -7,98 +7,112 @@ export const metadata = {
 }
 
 const eventDetails = [
-  ['Date', 'Thursday, November 26, 2026'],
-  ['Location', 'National Guard Armory, Aliceville, Alabama'],
-  ['Registration', '$50 ages 12 and up / $25 under 12'],
-  ['Includes', 'Registration, food, and t-shirt'],
+  ['Location', 'National Guard Armory', 'Aliceville, Alabama'],
+  ['Date', 'Thursday, November 26, 2026', 'Thanksgiving Day'],
+  [
+    'Registration',
+    '$50 (12 & up) | $25 (under 12)',
+    'Includes registration, food, and t-shirt',
+  ],
 ]
 
 export default function FamilyGatheringPage() {
   return (
-    <main className="min-h-screen overflow-hidden bg-[#1A0F08] text-[#FFF7E8]">
-      <section className="relative isolate px-5 py-8 sm:px-8 lg:px-12 lg:py-12">
-        <div className="absolute inset-0 -z-20 bg-[radial-gradient(circle_at_top_left,_rgba(232,177,88,0.28),_transparent_32%),radial-gradient(circle_at_80%_10%,_rgba(123,50,21,0.36),_transparent_28%),linear-gradient(135deg,_#1A0F08_0%,_#3C1F10_48%,_#120905_100%)]" />
-        <div className="absolute inset-x-0 top-0 -z-10 h-56 bg-[linear-gradient(180deg,_rgba(255,220,151,0.20),_transparent)]" />
-        <div className="absolute -right-24 top-24 -z-10 h-72 w-72 rounded-full border border-[#E8B158]/20" />
-        <div className="absolute -left-20 bottom-32 -z-10 h-64 w-64 rounded-full border border-[#D46A2A]/20" />
+    <main className="min-h-screen overflow-hidden bg-[#F2E3C8] text-[#4B2818]">
+      <section className="relative isolate px-4 py-8 sm:px-8 lg:px-10 lg:py-10">
+        <div className="absolute inset-0 -z-20 bg-[linear-gradient(180deg,_#F7ECD8_0%,_#F1E0C2_55%,_#EBD5B1_100%)]" />
+        <div className="absolute inset-x-0 top-0 -z-10 h-28 bg-[linear-gradient(180deg,_rgba(196,109,31,0.12),_transparent)]" />
+        <div className="absolute left-0 top-0 -z-10 h-56 w-56 rounded-full bg-[#C56C2B]/10 blur-3xl" />
+        <div className="absolute right-0 top-20 -z-10 h-72 w-72 rounded-full bg-[#8C7B48]/10 blur-3xl" />
+        <div className="absolute bottom-0 left-20 -z-10 h-72 w-72 rounded-full bg-[#B56425]/10 blur-3xl" />
 
-        <div className="mx-auto max-w-7xl border border-[#E8B158]/25 bg-[#210F08]/75 p-3 shadow-2xl shadow-black/40 backdrop-blur-sm">
-          <div className="border border-[#E8B158]/35 px-5 py-8 sm:px-8 lg:px-12 lg:py-14">
-            <header className="mb-12 flex flex-col gap-6 border-b border-[#E8B158]/25 pb-8 lg:flex-row lg:items-center lg:justify-between">
-              <div>
-                <p className="mb-3 text-xs font-semibold uppercase tracking-[0.35em] text-[#F0C879]">
-                  Hill / Broom Family Presents
+        <div className="mx-auto max-w-7xl border border-[#D7B988] bg-[#F7ECD8] shadow-[0_24px_60px_rgba(92,52,25,0.12)]">
+          <div className="m-3 border border-[#E6CC9F] bg-[linear-gradient(180deg,_rgba(255,250,240,0.5),_rgba(255,250,240,0.15))] px-5 py-8 sm:px-8 lg:px-12 lg:py-12">
+            <header className="text-center">
+              <div className="mx-auto mb-5 flex max-w-max items-center gap-3 text-[#B56425]">
+                <span className="h-px w-12 bg-[#C9894B]" />
+                <p className="text-xs font-semibold uppercase tracking-[0.35em]">
+                  Hill / Broom Family
                 </p>
-                <p className="font-serif text-2xl italic text-[#FFE2A4]">
-                  Thanksgiving Day in Aliceville
-                </p>
+                <span className="h-px w-12 bg-[#C9894B]" />
               </div>
 
-              <div className="max-w-sm border border-[#E8B158]/30 bg-black/20 p-5 text-sm leading-7 text-[#F8E6C8]">
-                <p className="text-xs uppercase tracking-[0.28em] text-[#F0C879]">
-                  Registration Deadline
+              <p className="font-serif text-4xl italic text-[#4F2A18] sm:text-5xl">
+                The
+              </p>
+              <h1 className="mt-1 font-serif text-6xl font-black uppercase leading-none tracking-[0.02em] text-[#4F2A18] sm:text-7xl lg:text-8xl">
+                Family
+              </h1>
+              <p className="mt-2 font-serif text-5xl italic leading-none text-[#C0601F] sm:text-6xl lg:text-7xl">
+                Gathering
+              </p>
+
+              <div className="mx-auto mt-7 flex max-w-3xl items-center gap-4 text-[#B56425]">
+                <span className="hidden h-px flex-1 bg-[#C9894B] sm:block" />
+                <p className="text-center text-sm font-semibold uppercase tracking-[0.2em] text-[#6A4129] sm:text-base">
+                  A Time to Connect. A Tradition to Continue.
                 </p>
-                <p className="mt-2 font-serif text-2xl text-white">
-                  October 15, 2026
-                </p>
+                <span className="hidden h-px flex-1 bg-[#C9894B] sm:block" />
               </div>
+
+              <p className="mx-auto mt-7 max-w-4xl text-lg leading-8 text-[#6A4129] sm:text-xl">
+                One family. Many branches. Stronger together. Register your
+                household for a Thanksgiving celebration centered on connection,
+                fellowship, and family tradition.
+              </p>
             </header>
 
-            <section className="grid gap-12 lg:grid-cols-[1fr_0.72fr] lg:items-center">
-              <div>
-                <div className="mb-8 inline-flex items-center gap-3 rounded-full border border-[#E8B158]/35 bg-[#E8B158]/10 px-5 py-2 text-xs uppercase tracking-[0.25em] text-[#FFE2A4]">
-                  <span className="h-1.5 w-1.5 rounded-full bg-[#F0C879]" />
-                  Family • Food • Fellowship
-                </div>
-
-                <h1 className="max-w-4xl font-serif text-6xl leading-[0.88] tracking-[-0.045em] text-white sm:text-7xl lg:text-8xl">
-                  The Family Gathering
-                </h1>
-
-                <p className="mt-7 max-w-3xl text-xl leading-[1.9] text-[#F8E6C8] sm:text-2xl">
-                  Come home, bring the family, and register for a Thanksgiving
-                  gathering built around connection, gratitude, good food, and
-                  the people who make us who we are.
-                </p>
-
-                <div className="mt-10 grid gap-4 sm:grid-cols-2">
-                  <div className="border border-[#E8B158]/30 bg-[#F6D28A]/10 p-6">
-                    <p className="text-xs uppercase tracking-[0.25em] text-[#F0C879]">
-                      12 & Up
+            <section className="mt-12 grid gap-8 lg:grid-cols-[1.06fr_0.94fr] lg:items-start">
+              <div className="grid gap-5 sm:grid-cols-3 lg:grid-cols-1">
+                {eventDetails.map(([label, primary, secondary]) => (
+                  <div
+                    key={label}
+                    className="border border-[#D7B988] bg-[#FFF8EC] p-6 shadow-sm"
+                  >
+                    <p className="text-xs font-semibold uppercase tracking-[0.28em] text-[#B56425]">
+                      {label}
                     </p>
-                    <p className="mt-2 font-serif text-5xl text-white">$50</p>
-                  </div>
-                  <div className="border border-[#E8B158]/30 bg-[#F6D28A]/10 p-6">
-                    <p className="text-xs uppercase tracking-[0.25em] text-[#F0C879]">
-                      Under 12
+                    <p className="mt-3 font-serif text-3xl leading-tight text-[#4B2818]">
+                      {primary}
                     </p>
-                    <p className="mt-2 font-serif text-5xl text-white">$25</p>
+                    <p className="mt-2 text-base leading-7 text-[#7D5E46]">
+                      {secondary}
+                    </p>
                   </div>
-                </div>
+                ))}
               </div>
 
-              <aside className="relative border border-[#E8B158]/40 bg-[#120905]/80 p-6 shadow-xl shadow-black/30 sm:p-8">
-                <div className="absolute -right-4 -top-4 h-20 w-20 border-r border-t border-[#E8B158]/50" />
-                <div className="absolute -bottom-4 -left-4 h-20 w-20 border-b border-l border-[#E8B158]/50" />
-
-                <p className="mb-7 text-center text-xs font-semibold uppercase tracking-[0.35em] text-[#F0C879]">
-                  Formal Invitation Details
+              <aside className="border border-[#D7B988] bg-[#FFF8EC] p-6 sm:p-8">
+                <p className="text-xs font-semibold uppercase tracking-[0.3em] text-[#B56425]">
+                  Event Notes
                 </p>
 
-                <div className="space-y-5">
-                  {eventDetails.map(([label, value]) => (
-                    <div
-                      key={label}
-                      className="border-b border-[#E8B158]/20 pb-5 last:border-b-0 last:pb-0"
-                    >
-                      <p className="text-xs uppercase tracking-[0.24em] text-[#C88B45]">
-                        {label}
-                      </p>
-                      <p className="mt-2 font-serif text-2xl leading-tight text-[#FFF7E8]">
-                        {value}
-                      </p>
-                    </div>
-                  ))}
+                <div className="mt-6 space-y-5 text-[#6A4129]">
+                  <div className="border-b border-[#E6CC9F] pb-5">
+                    <p className="font-serif text-2xl text-[#4B2818]">
+                      One primary registrant can register multiple family members
+                      at one time.
+                    </p>
+                  </div>
+                  <div className="border-b border-[#E6CC9F] pb-5">
+                    <p className="font-serif text-2xl text-[#4B2818]">
+                      Total cost is shown before the final payment selection is
+                      submitted.
+                    </p>
+                  </div>
+                  <div className="border-b border-[#E6CC9F] pb-5">
+                    <p className="font-serif text-2xl text-[#4B2818]">
+                      Pay by Cash, Money Order, CashApp, or PayPal invoice.
+                    </p>
+                  </div>
+                  <div>
+                    <p className="text-sm font-semibold uppercase tracking-[0.25em] text-[#8A7A4A]">
+                      Registration Deadline
+                    </p>
+                    <p className="mt-2 font-serif text-4xl text-[#6F7B40]">
+                      October 15, 2026
+                    </p>
+                  </div>
                 </div>
               </aside>
             </section>
@@ -106,28 +120,34 @@ export default function FamilyGatheringPage() {
         </div>
       </section>
 
-      <section className="relative px-5 pb-16 sm:px-8 lg:px-12">
-        <div className="absolute inset-0 -z-10 bg-[linear-gradient(180deg,_#1A0F08_0%,_#281207_45%,_#120905_100%)]" />
-
+      <section className="relative px-4 pb-16 sm:px-8 lg:px-10 lg:pb-20">
         <div className="mx-auto max-w-7xl">
           <div className="mb-8 text-center">
-            <p className="mb-4 text-xs font-semibold uppercase tracking-[0.35em] text-[#F0C879]">
-              Reserve Your Place
+            <p className="mb-3 text-xs font-semibold uppercase tracking-[0.35em] text-[#B56425]">
+              Family Registration
             </p>
-            <h2 className="font-serif text-4xl leading-tight text-white sm:text-5xl">
-              Register your household for The Family Gathering.
+            <h2 className="font-serif text-4xl leading-tight text-[#4B2818] sm:text-5xl">
+              Reserve your place at The Family Gathering.
             </h2>
-            <p className="mx-auto mt-5 max-w-3xl text-lg leading-8 text-[#F8E6C8]">
-              One primary registrant can add everyone in the group. Payment may
-              be made by Cash, Money Order, CashApp, or PayPal invoice from get
-              ACEd, LLC.
+            <p className="mx-auto mt-5 max-w-3xl text-lg leading-8 text-[#6A4129]">
+              Complete the form below for your household. Pricing includes
+              registration, food, and a t-shirt for each registrant.
             </p>
           </div>
 
-          <div className="border border-[#E8B158]/30 bg-[#0D0805]/80 p-3 shadow-2xl shadow-black/40">
-            <div className="border border-[#E8B158]/20 bg-[radial-gradient(circle_at_top,_rgba(232,177,88,0.10),_transparent_36%),#130A06] p-4 sm:p-6 lg:p-8">
+          <div className="border border-[#D7B988] bg-[#F7ECD8] p-3 shadow-[0_24px_60px_rgba(92,52,25,0.10)]">
+            <div className="border border-[#E6CC9F] bg-[linear-gradient(180deg,_rgba(255,248,236,0.92),_rgba(252,243,228,0.98))] p-4 sm:p-6 lg:p-8">
               <FamilyGatheringRegistrationForm />
             </div>
+          </div>
+
+          <div className="mx-auto mt-10 max-w-4xl border border-[#B8A26A] bg-[#6D7342] px-6 py-7 text-center text-[#FFF7E8] shadow-lg">
+            <p className="font-serif text-3xl sm:text-4xl">
+              One Family. Many Branches.
+            </p>
+            <p className="mt-2 font-serif text-4xl italic sm:text-5xl">
+              Stronger Together.
+            </p>
           </div>
         </div>
       </section>
