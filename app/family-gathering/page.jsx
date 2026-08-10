@@ -1,4 +1,4 @@
-import FamilyGatheringRegistrationForm from '../../components/FamilyGatheringRegistrationForm'
+import FamilyGatheringRegistrationForm from '../../components/FamilyGatheringRegistrationFormSquare'
 
 export const metadata = {
   title: 'The Family Gathering 2026 Registration',
@@ -102,7 +102,8 @@ export default function FamilyGatheringPage() {
                   </div>
                   <div className="border-b border-[#E6CC9F] pb-5">
                     <p className="font-serif text-2xl text-[#4B2818]">
-                      Pay by Cash, Money Order, CashApp, or PayPal invoice.
+                      Pay by Cash, Money Order, CashApp to $AnitaPrude, or Pay
+                      Online through Square.
                     </p>
                   </div>
                   <div>
