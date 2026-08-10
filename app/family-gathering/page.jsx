@@ -12,8 +12,8 @@ const eventDetails = [
   ['Date', 'Thursday, November 26, 2026', 'Thanksgiving Day'],
   [
     'Registration',
-    '$50 (12 & up) | $25 (under 12)',
-    'Includes registration, food, and t-shirt',
+    '$50/$25 cash or money order',
+    '$52/$26.50 CashApp or Pay Online',
   ],
 ]
 
@@ -107,14 +107,15 @@ export default function FamilyGatheringPage({ searchParams }) {
                   </div>
                   <div className="border-b border-[#E6CC9F] pb-5">
                     <p className="font-serif text-2xl text-[#4B2818]">
-                      Total cost is shown before the final payment selection is
-                      submitted.
+                      Cash and money order pricing is $50 for ages 12+ and $25
+                      for children under 12.
                     </p>
                   </div>
                   <div className="border-b border-[#E6CC9F] pb-5">
                     <p className="font-serif text-2xl text-[#4B2818]">
-                      Pay by Cash, Money Order, CashApp to $AnitaPrude, or Pay
-                      Online through Square.
+                      CashApp and Pay Online pricing is $52 for ages 12+ and
+                      $26.50 for children under 12 to help cover digital payment
+                      and transfer fees.
                     </p>
                   </div>
                   <div>
