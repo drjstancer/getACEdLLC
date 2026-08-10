@@ -1,5 +1,6 @@
 import FamilyGatheringRegistrationForm from '../../components/FamilyGatheringRegistrationFormSquare'
 import FamilyGatheringSquareTest from '../../components/FamilyGatheringSquareTest'
+import FamilyGatheringAutumnHero from '../../components/FamilyGatheringAutumnHero'
 
 export const metadata = {
   title: 'The Family Gathering 2026 Registration',
@@ -72,6 +73,8 @@ export default function FamilyGatheringPage({ searchParams }) {
                 fellowship, and family tradition.
               </p>
             </header>
+
+            <FamilyGatheringAutumnHero />
 
             <section className="mt-12 grid gap-8 lg:grid-cols-[1.06fr_0.94fr] lg:items-start">
               <div className="grid gap-5 sm:grid-cols-3 lg:grid-cols-1">
