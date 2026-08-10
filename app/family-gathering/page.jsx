@@ -1,4 +1,5 @@
 import FamilyGatheringRegistrationForm from '../../components/FamilyGatheringRegistrationFormSquare'
+import FamilyGatheringSquareTest from '../../components/FamilyGatheringSquareTest'
 
 export const metadata = {
   title: 'The Family Gathering 2026 Registration',
@@ -16,7 +17,17 @@ const eventDetails = [
   ],
 ]
 
-export default function FamilyGatheringPage() {
+export default function FamilyGatheringPage({ searchParams }) {
+  const isPaymentTest = searchParams?.paymentTest === '1'
+
+  if (isPaymentTest) {
+    return (
+      <main className="min-h-screen bg-[#F2E3C8] px-4 py-10 sm:px-8 lg:px-10">
+        <FamilyGatheringSquareTest />
+      </main>
+    )
+  }
+
   return (
     <main className="min-h-screen overflow-hidden bg-[#F2E3C8] text-[#4B2818]">
       <section className="relative isolate px-4 py-8 sm:px-8 lg:px-10 lg:py-10">
