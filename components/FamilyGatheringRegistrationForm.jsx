@@ -1,6 +1,6 @@
 "use client"
 
-import { useMemo, useState } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 
 const shirtSizes = [
   'Youth XS',
@@ -36,10 +36,10 @@ const paymentOptions = [
     detail: 'Send to $AnitaPrude.',
   },
   {
-    value: 'PayPal',
-    label: 'PayPal Invoice',
+    value: 'Square',
+    label: 'Pay Online',
     detail:
-      'A PayPal invoice from get ACEd, LLC will be sent to the primary registrant by email.',
+      'Pay now by card using Square. Your registration will be submitted after payment is approved.',
   },
 ]
 
@@ -52,6 +52,43 @@ const emptyAdditionalRegistrant = () => ({
   contactEmail: '',
   contactPhone: '',
 })
+
+let squareScriptPromise = null
+
+function loadSquareScript() {
+  if (typeof window === 'undefined') {
+    return Promise.resolve()
+  }
+
+  if (window.Square) {
+    return Promise.resolve()
+  }
+
+  if (!squareScriptPromise) {
+    squareScriptPromise = new Promise((resolve, reject) => {
+      const existingScript = document.querySelector(
+        'script[data-square-web-payments]'
+      )
+
+      if (existingScript) {
+        existingScript.addEventListener('load', resolve, { once: true })
+        existingScript.addEventListener('error', reject, { once: true })
+        return
+      }
+
+      const script = document.createElement('script')
+      script.src = 'https://web.squarecdn.com/v1/square.js'
+      script.async = true
+      script.dataset.squareWebPayments = 'true'
+      script.onload = resolve
+      script.onerror = () =>
+        reject(new Error('Square payment form could not be loaded.'))
+      document.head.appendChild(script)
+    })
+  }
+
+  return squareScriptPromise
+}
 
 function attendeePrice(age) {
   const parsedAge = Number(age)
@@ -104,9 +141,13 @@ function SelectInput({ children, ...props }) {
 }
 
 export default function FamilyGatheringRegistrationForm() {
+  const cardRef = useRef(null)
   const [step, setStep] = useState('registrants')
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [error, setError] = useState('')
+  const [squareError, setSquareError] = useState('')
+  const [squareReady, setSquareReady] = useState(false)
+  const [squareLoading, setSquareLoading] = useState(false)
   const [confirmation, setConfirmation] = useState(null)
 
   const [primary, setPrimary] = useState({
@@ -158,6 +199,85 @@ export default function FamilyGatheringRegistrationForm() {
   const selectedPayment = paymentOptions.find(
     (option) => option.value === paymentMethod
   )
+
+  useEffect(() => {
+    let destroyed = false
+
+    async function initializeSquareCard() {
+      setSquareError('')
+      setSquareReady(false)
+
+      if (step !== 'payment' || paymentMethod !== 'Square') {
+        if (cardRef.current) {
+          try {
+            await cardRef.current.destroy?.()
+          } catch (error) {
+            // Ignore cleanup errors.
+          }
+          cardRef.current = null
+        }
+        return
+      }
+
+      const appId = process.env.NEXT_PUBLIC_SQUARE_APPLICATION_ID
+      const locationId = process.env.NEXT_PUBLIC_SQUARE_LOCATION_ID
+
+      if (!appId || !locationId) {
+        setSquareError(
+          'Square payments are not fully configured yet. Please choose another payment method or try again later.'
+        )
+        return
+      }
+
+      setSquareLoading(true)
+
+      try {
+        await loadSquareScript()
+
+        if (!window.Square) {
+          throw new Error('Square payment form could not be initialized.')
+        }
+
+        if (cardRef.current) {
+          try {
+            await cardRef.current.destroy?.()
+          } catch (error) {
+            // Ignore cleanup errors.
+          }
+          cardRef.current = null
+        }
+
+        const payments = window.Square.payments(appId, locationId)
+        const card = await payments.card()
+
+        if (destroyed) {
+          try {
+            await card.destroy?.()
+          } catch (error) {
+            // Ignore cleanup errors.
+          }
+          return
+        }
+
+        await card.attach('#square-card-container')
+        cardRef.current = card
+        setSquareReady(true)
+      } catch (squareInitializationError) {
+        setSquareError(
+          squareInitializationError.message ||
+            'Square payment form could not be loaded.'
+        )
+      } finally {
+        setSquareLoading(false)
+      }
+    }
+
+    initializeSquareCard()
+
+    return () => {
+      destroyed = true
+    }
+  }, [step, paymentMethod])
 
   function updatePrimary(field, value) {
     setPrimary((current) => ({ ...current, [field]: value }))
@@ -259,6 +379,31 @@ export default function FamilyGatheringRegistrationForm() {
     setIsSubmitting(true)
 
     try {
+      let squareSourceId = ''
+
+      if (paymentMethod === 'Square') {
+        if (!cardRef.current || !squareReady) {
+          throw new Error(
+            'The Square payment form is still loading. Please wait a moment and try again.'
+          )
+        }
+
+        const tokenResult = await cardRef.current.tokenize()
+
+        if (tokenResult.status !== 'OK') {
+          const tokenErrors = tokenResult.errors
+            ?.map((tokenError) => tokenError.message)
+            .filter(Boolean)
+            .join(' ')
+
+          throw new Error(
+            tokenErrors || 'Square could not verify the payment information.'
+          )
+        }
+
+        squareSourceId = tokenResult.token
+      }
+
       const response = await fetch('/api/family-gathering-registration', {
         method: 'POST',
         headers: {
@@ -268,6 +413,7 @@ export default function FamilyGatheringRegistrationForm() {
           primary,
           additionalRegistrants,
           paymentMethod,
+          squareSourceId,
         }),
       })
 
@@ -313,8 +459,16 @@ export default function FamilyGatheringRegistrationForm() {
           </p>
           <p>
             <strong className="text-white">Payment Method:</strong>{' '}
-            {confirmation.paymentMethod}
+            {confirmation.paymentMethod === 'Square'
+              ? 'Pay Online'
+              : confirmation.paymentMethod}
           </p>
+          {confirmation.squarePaymentId ? (
+            <p>
+              <strong className="text-white">Square Payment ID:</strong>{' '}
+              {confirmation.squarePaymentId}
+            </p>
+          ) : null}
         </div>
 
         <div className="border border-white/10 bg-white/[0.04] p-6 text-[#F5F2EB]">
@@ -323,12 +477,12 @@ export default function FamilyGatheringRegistrationForm() {
           </p>
           <p className="leading-8">{confirmation.paymentInstructions}</p>
 
-          {confirmation.paypalInvoiceUrl ? (
+          {confirmation.squareReceiptUrl ? (
             <a
-              href={confirmation.paypalInvoiceUrl}
+              href={confirmation.squareReceiptUrl}
               className="mt-6 inline-block border border-[#C8A96B] px-6 py-3 text-xs uppercase tracking-[0.22em] text-[#C8A96B] transition-all duration-300 hover:bg-[#C8A96B] hover:text-black"
             >
-              View PayPal Invoice
+              View Square Receipt
             </a>
           ) : null}
 
@@ -498,10 +652,7 @@ export default function FamilyGatheringRegistrationForm() {
               ) : null}
 
               {additionalRegistrants.map((registrant, index) => (
-                <div
-                  key={index}
-                  className="border border-white/10 bg-black/20 p-6 md:p-8"
-                >
+                <div key={index} className="border border-white/10 p-6 md:p-8">
                   <div className="mb-6 flex items-center justify-between gap-4">
                     <h3 className="font-serif text-2xl text-white">
                       Registrant {index + 2}
@@ -632,7 +783,7 @@ export default function FamilyGatheringRegistrationForm() {
           <div className="flex justify-end border-t border-white/10 pt-10">
             <button
               type="submit"
-              className="bg-[#C8A96B] px-8 py-4 text-xs font-semibold uppercase tracking-[0.22em] text-black transition-all duration-300 hover:bg-[#E4C982]"
+              className="bg-[#C8A96B] px-8 py-4 text-xs font-semibold uppercase tracking-[0.22em] text-black transition-all duration-300 hover:bg-[#D7B980]"
             >
               Review Total
             </button>
@@ -643,7 +794,7 @@ export default function FamilyGatheringRegistrationForm() {
       {step === 'payment' ? (
         <form onSubmit={handleFinalSubmit} className="space-y-10">
           <div className="grid gap-6 md:grid-cols-4">
-            <div className="border border-white/10 bg-black/20 p-6">
+            <div className="border border-white/10 p-6">
               <p className="text-xs uppercase tracking-[0.22em] text-[#C8A96B]">
                 Total
               </p>
@@ -652,7 +803,7 @@ export default function FamilyGatheringRegistrationForm() {
               </p>
             </div>
 
-            <div className="border border-white/10 bg-black/20 p-6">
+            <div className="border border-white/10 p-6">
               <p className="text-xs uppercase tracking-[0.22em] text-[#C8A96B]">
                 Registrants
               </p>
@@ -661,7 +812,7 @@ export default function FamilyGatheringRegistrationForm() {
               </p>
             </div>
 
-            <div className="border border-white/10 bg-black/20 p-6">
+            <div className="border border-white/10 p-6">
               <p className="text-xs uppercase tracking-[0.22em] text-[#C8A96B]">
                 12 & Up
               </p>
@@ -670,7 +821,7 @@ export default function FamilyGatheringRegistrationForm() {
               </p>
             </div>
 
-            <div className="border border-white/10 bg-black/20 p-6">
+            <div className="border border-white/10 p-6">
               <p className="text-xs uppercase tracking-[0.22em] text-[#C8A96B]">
                 Under 12
               </p>
@@ -680,7 +831,7 @@ export default function FamilyGatheringRegistrationForm() {
             </div>
           </div>
 
-          <div className="border border-white/10 bg-black/20 p-6">
+          <section className="border border-white/10 p-6 md:p-8">
             <h2 className="mb-6 font-serif text-3xl text-white">
               Select Payment Method
             </h2>
@@ -692,7 +843,7 @@ export default function FamilyGatheringRegistrationForm() {
                   className={`cursor-pointer border p-6 transition-all duration-300 ${
                     paymentMethod === option.value
                       ? 'border-[#C8A96B] bg-[#C8A96B]/10'
-                      : 'border-white/10 bg-white/[0.03] hover:border-white/25'
+                      : 'border-white/10 bg-white/[0.03] hover:border-[#C8A96B]/50'
                   }`}
                 >
                   <div className="flex items-start gap-4">
@@ -717,6 +868,32 @@ export default function FamilyGatheringRegistrationForm() {
               ))}
             </div>
 
+            {paymentMethod === 'Square' ? (
+              <div className="mt-8 border border-[#C8A96B]/40 bg-black/20 p-5">
+                <p className="mb-4 text-xs uppercase tracking-[0.22em] text-[#C8A96B]">
+                  Secure Card Payment
+                </p>
+                <div
+                  id="square-card-container"
+                  className="min-h-[96px] bg-white p-4 text-black"
+                />
+                {squareLoading ? (
+                  <p className="mt-4 text-sm leading-7 text-[#AFA79B]">
+                    Loading secure Square payment form...
+                  </p>
+                ) : null}
+                {squareError ? (
+                  <p className="mt-4 border border-red-300/40 bg-red-500/10 p-4 text-sm leading-7 text-red-100">
+                    {squareError}
+                  </p>
+                ) : null}
+                <p className="mt-4 text-sm leading-7 text-[#AFA79B]">
+                  Your card details are collected securely by Square. The site
+                  receives a one-time payment token, not your card number.
+                </p>
+              </div>
+            ) : null}
+
             {selectedPayment ? (
               <div className="mt-6 border border-[#C8A96B]/30 bg-[#C8A96B]/10 p-5 text-[#F5F2EB]">
                 <p className="mb-2 text-xs uppercase tracking-[0.22em] text-[#C8A96B]">
@@ -725,7 +902,7 @@ export default function FamilyGatheringRegistrationForm() {
                 <p className="leading-7">{selectedPayment.detail}</p>
               </div>
             ) : null}
-          </div>
+          </section>
 
           <div className="flex flex-col gap-4 border-t border-white/10 pt-10 md:flex-row md:justify-between">
             <button
@@ -734,17 +911,21 @@ export default function FamilyGatheringRegistrationForm() {
                 setStep('registrants')
                 window.scrollTo({ top: 0, behavior: 'smooth' })
               }}
-              className="border border-white/15 px-8 py-4 text-xs uppercase tracking-[0.22em] text-white transition-all duration-300 hover:border-white/40"
+              className="border border-white/15 px-8 py-4 text-xs uppercase tracking-[0.22em] text-[#F5F2EB] transition-all duration-300 hover:border-[#C8A96B] hover:text-[#C8A96B]"
             >
               Back to Registrants
             </button>
 
             <button
               type="submit"
-              disabled={isSubmitting}
-              className="bg-[#C8A96B] px-8 py-4 text-xs font-semibold uppercase tracking-[0.22em] text-black transition-all duration-300 hover:bg-[#E4C982] disabled:cursor-not-allowed disabled:opacity-50"
+              disabled={isSubmitting || (paymentMethod === 'Square' && !squareReady)}
+              className="bg-[#C8A96B] px-8 py-4 text-xs font-semibold uppercase tracking-[0.22em] text-black transition-all duration-300 hover:bg-[#D7B980] disabled:cursor-not-allowed disabled:opacity-50"
             >
-              {isSubmitting ? 'Submitting...' : 'Submit Registration'}
+              {isSubmitting
+                ? 'Submitting...'
+                : paymentMethod === 'Square'
+                  ? 'Pay and Submit Registration'
+                  : 'Submit Registration'}
             </button>
           </div>
         </form>
