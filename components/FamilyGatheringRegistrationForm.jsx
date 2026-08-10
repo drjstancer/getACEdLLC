@@ -39,7 +39,7 @@ const paymentOptions = [
     value: 'Square',
     label: 'Pay Online',
     detail:
-      'Pay now by card using Square. Your registration will be submitted after payment is approved.',
+      'Pay now using Square by card, Apple Pay, Google Pay, or Cash App Pay when available.',
   },
 ]
 
@@ -141,13 +141,21 @@ function SelectInput({ children, ...props }) {
 }
 
 export default function FamilyGatheringRegistrationForm() {
-  const cardRef = useRef(null)
+  const squareMethodsRef = useRef({})
+  const submitRegistrationRef = useRef(null)
+  const squarePaymentHandlerRef = useRef(null)
+
   const [step, setStep] = useState('registrants')
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [error, setError] = useState('')
   const [squareError, setSquareError] = useState('')
-  const [squareReady, setSquareReady] = useState(false)
   const [squareLoading, setSquareLoading] = useState(false)
+  const [squareAvailable, setSquareAvailable] = useState({
+    card: false,
+    applePay: false,
+    googlePay: false,
+    cashAppPay: false,
+  })
   const [confirmation, setConfirmation] = useState(null)
 
   const [primary, setPrimary] = useState({
@@ -199,85 +207,6 @@ export default function FamilyGatheringRegistrationForm() {
   const selectedPayment = paymentOptions.find(
     (option) => option.value === paymentMethod
   )
-
-  useEffect(() => {
-    let destroyed = false
-
-    async function initializeSquareCard() {
-      setSquareError('')
-      setSquareReady(false)
-
-      if (step !== 'payment' || paymentMethod !== 'Square') {
-        if (cardRef.current) {
-          try {
-            await cardRef.current.destroy?.()
-          } catch (error) {
-            // Ignore cleanup errors.
-          }
-          cardRef.current = null
-        }
-        return
-      }
-
-      const appId = process.env.NEXT_PUBLIC_SQUARE_APPLICATION_ID
-      const locationId = process.env.NEXT_PUBLIC_SQUARE_LOCATION_ID
-
-      if (!appId || !locationId) {
-        setSquareError(
-          'Square payments are not fully configured yet. Please choose another payment method or try again later.'
-        )
-        return
-      }
-
-      setSquareLoading(true)
-
-      try {
-        await loadSquareScript()
-
-        if (!window.Square) {
-          throw new Error('Square payment form could not be initialized.')
-        }
-
-        if (cardRef.current) {
-          try {
-            await cardRef.current.destroy?.()
-          } catch (error) {
-            // Ignore cleanup errors.
-          }
-          cardRef.current = null
-        }
-
-        const payments = window.Square.payments(appId, locationId)
-        const card = await payments.card()
-
-        if (destroyed) {
-          try {
-            await card.destroy?.()
-          } catch (error) {
-            // Ignore cleanup errors.
-          }
-          return
-        }
-
-        await card.attach('#square-card-container')
-        cardRef.current = card
-        setSquareReady(true)
-      } catch (squareInitializationError) {
-        setSquareError(
-          squareInitializationError.message ||
-            'Square payment form could not be loaded.'
-        )
-      } finally {
-        setSquareLoading(false)
-      }
-    }
-
-    initializeSquareCard()
-
-    return () => {
-      destroyed = true
-    }
-  }, [step, paymentMethod])
 
   function updatePrimary(field, value) {
     setPrimary((current) => ({ ...current, [field]: value }))
@@ -367,43 +296,11 @@ export default function FamilyGatheringRegistrationForm() {
     window.scrollTo({ top: 0, behavior: 'smooth' })
   }
 
-  async function handleFinalSubmit(event) {
-    event.preventDefault()
+  async function submitRegistration({ squareSourceId = '', squarePaymentType = '' } = {}) {
     setError('')
-
-    if (!paymentMethod) {
-      setError('Please select a payment method.')
-      return
-    }
-
     setIsSubmitting(true)
 
     try {
-      let squareSourceId = ''
-
-      if (paymentMethod === 'Square') {
-        if (!cardRef.current || !squareReady) {
-          throw new Error(
-            'The Square payment form is still loading. Please wait a moment and try again.'
-          )
-        }
-
-        const tokenResult = await cardRef.current.tokenize()
-
-        if (tokenResult.status !== 'OK') {
-          const tokenErrors = tokenResult.errors
-            ?.map((tokenError) => tokenError.message)
-            .filter(Boolean)
-            .join(' ')
-
-          throw new Error(
-            tokenErrors || 'Square could not verify the payment information.'
-          )
-        }
-
-        squareSourceId = tokenResult.token
-      }
-
       const response = await fetch('/api/family-gathering-registration', {
         method: 'POST',
         headers: {
@@ -414,6 +311,7 @@ export default function FamilyGatheringRegistrationForm() {
           additionalRegistrants,
           paymentMethod,
           squareSourceId,
+          squarePaymentType,
         }),
       })
 
@@ -432,6 +330,258 @@ export default function FamilyGatheringRegistrationForm() {
       setIsSubmitting(false)
     }
   }
+
+  submitRegistrationRef.current = submitRegistration
+
+  function readTokenErrors(tokenResult) {
+    return tokenResult.errors
+      ?.map((tokenError) => tokenError.message)
+      .filter(Boolean)
+      .join(' ')
+  }
+
+  async function payWithSquareMethod(methodKey) {
+    setError('')
+    const squareMethod = squareMethodsRef.current[methodKey]
+
+    if (!squareMethod) {
+      setError('That Square payment method is not available on this device or browser.')
+      return
+    }
+
+    setIsSubmitting(true)
+
+    try {
+      const tokenResult = await squareMethod.tokenize()
+
+      if (tokenResult.status !== 'OK') {
+        throw new Error(
+          readTokenErrors(tokenResult) ||
+            'Square could not verify the selected payment method.'
+        )
+      }
+
+      const paymentLabels = {
+        card: 'Card',
+        applePay: 'Apple Pay',
+        googlePay: 'Google Pay',
+      }
+
+      await submitRegistration({
+        squareSourceId: tokenResult.token,
+        squarePaymentType: paymentLabels[methodKey] || 'Square',
+      })
+    } catch (paymentError) {
+      setError(paymentError.message)
+      setIsSubmitting(false)
+    }
+  }
+
+  squarePaymentHandlerRef.current = payWithSquareMethod
+
+  async function handleFinalSubmit(event) {
+    event.preventDefault()
+    setError('')
+
+    if (!paymentMethod) {
+      setError('Please select a payment method.')
+      return
+    }
+
+    if (paymentMethod === 'Square') {
+      await payWithSquareMethod('card')
+      return
+    }
+
+    await submitRegistration()
+  }
+
+  useEffect(() => {
+    let destroyed = false
+
+    async function destroySquareMethods() {
+      const currentMethods = squareMethodsRef.current
+
+      for (const method of Object.values(currentMethods)) {
+        try {
+          await method?.destroy?.()
+        } catch (error) {
+          // Ignore Square cleanup errors.
+        }
+      }
+
+      squareMethodsRef.current = {}
+      setSquareAvailable({
+        card: false,
+        applePay: false,
+        googlePay: false,
+        cashAppPay: false,
+      })
+    }
+
+    async function initializeSquare() {
+      if (step !== 'payment' || paymentMethod !== 'Square') {
+        await destroySquareMethods()
+        return
+      }
+
+      const appId = process.env.NEXT_PUBLIC_SQUARE_APPLICATION_ID
+      const locationId = process.env.NEXT_PUBLIC_SQUARE_LOCATION_ID
+
+      if (!appId || !locationId) {
+        setSquareError(
+          'Square payments are not fully configured yet. Please choose another payment method or try again later.'
+        )
+        return
+      }
+
+      setSquareLoading(true)
+      setSquareError('')
+      await destroySquareMethods()
+
+      try {
+        await loadSquareScript()
+
+        if (!window.Square) {
+          throw new Error('Square payment form could not be initialized.')
+        }
+
+        const payments = window.Square.payments(appId, locationId)
+        const paymentRequest = payments.paymentRequest({
+          countryCode: 'US',
+          currencyCode: 'USD',
+          total: {
+            amount: totals.totalCost.toFixed(2),
+            label: 'The Family Gathering Registration',
+          },
+        })
+
+        const available = {
+          card: false,
+          applePay: false,
+          googlePay: false,
+          cashAppPay: false,
+        }
+        const methods = {}
+
+        try {
+          const card = await payments.card()
+          if (!destroyed) {
+            await card.attach('#square-card-container')
+            methods.card = card
+            available.card = true
+          }
+        } catch (cardError) {
+          console.warn('Square card unavailable:', cardError)
+        }
+
+        try {
+          const applePay = await payments.applePay(paymentRequest)
+          if (!destroyed) {
+            methods.applePay = applePay
+            available.applePay = true
+          }
+        } catch (applePayError) {
+          console.warn('Apple Pay unavailable:', applePayError)
+        }
+
+        try {
+          const googlePay = await payments.googlePay(paymentRequest)
+          if (!destroyed) {
+            await googlePay.attach('#square-google-pay-container', {
+              buttonColor: 'black',
+              buttonType: 'pay',
+            })
+            const googlePayTarget = document.getElementById(
+              'square-google-pay-container'
+            )
+            if (googlePayTarget) {
+              googlePayTarget.onclick = (event) => {
+                event.preventDefault()
+                squarePaymentHandlerRef.current?.('googlePay')
+              }
+            }
+            methods.googlePay = googlePay
+            available.googlePay = true
+          }
+        } catch (googlePayError) {
+          console.warn('Google Pay unavailable:', googlePayError)
+        }
+
+        try {
+          const cashAppPay = await payments.cashAppPay(paymentRequest, {
+            redirectURL: window.location.href,
+            referenceId: 'family-gathering-registration',
+          })
+
+          if (!destroyed) {
+            cashAppPay.addEventListener('ontokenization', (event) => {
+              const { tokenResult, error: cashAppError } = event.detail
+
+              if (cashAppError) {
+                setError(
+                  cashAppError.message || 'Cash App Pay could not be completed.'
+                )
+                return
+              }
+
+              if (tokenResult?.status === 'OK') {
+                submitRegistrationRef.current?.({
+                  squareSourceId: tokenResult.token,
+                  squarePaymentType: 'Cash App Pay',
+                })
+                return
+              }
+
+              if (tokenResult?.status === 'Cancel') {
+                setError('Cash App Pay was canceled before payment was completed.')
+                return
+              }
+
+              setError(
+                readTokenErrors(tokenResult) ||
+                  'Cash App Pay could not verify the payment.'
+              )
+            })
+
+            await cashAppPay.attach('#square-cash-app-pay-container')
+            methods.cashAppPay = cashAppPay
+            available.cashAppPay = true
+          }
+        } catch (cashAppPayError) {
+          console.warn('Cash App Pay unavailable:', cashAppPayError)
+        }
+
+        if (!destroyed) {
+          squareMethodsRef.current = methods
+          setSquareAvailable(available)
+
+          if (!Object.values(available).some(Boolean)) {
+            setSquareError(
+              'Square payment methods are not available on this device or browser. Please choose Cash, Money Order, or CashApp.'
+            )
+          }
+        }
+      } catch (squareInitializationError) {
+        if (!destroyed) {
+          setSquareError(
+            squareInitializationError.message ||
+              'Square payment form could not be loaded.'
+          )
+        }
+      } finally {
+        if (!destroyed) {
+          setSquareLoading(false)
+        }
+      }
+    }
+
+    initializeSquare()
+
+    return () => {
+      destroyed = true
+    }
+  }, [step, paymentMethod, totals.totalCost])
 
   if (step === 'confirmation' && confirmation) {
     return (
@@ -869,32 +1019,84 @@ export default function FamilyGatheringRegistrationForm() {
             </div>
 
             {paymentMethod === 'Square' ? (
-              <div className="mt-8 border border-[#C8A96B]/40 bg-black/20 p-5">
-                <p className="mb-4 text-xs uppercase tracking-[0.22em] text-[#C8A96B]">
-                  Secure Card Payment
-                </p>
-                <div
-                  id="square-card-container"
-                  className="min-h-[96px] bg-white p-4 text-black"
-                />
-                {squareLoading ? (
+              <div className="mt-8 space-y-6 border border-[#C8A96B]/40 bg-black/20 p-5">
+                <div>
+                  <p className="mb-4 text-xs uppercase tracking-[0.22em] text-[#C8A96B]">
+                    Secure Card Payment
+                  </p>
+                  <div
+                    id="square-card-container"
+                    className="min-h-[96px] bg-white p-4 text-black"
+                  />
+                  <button
+                    type="submit"
+                    disabled={isSubmitting || !squareAvailable.card}
+                    className="mt-5 bg-[#C8A96B] px-6 py-4 text-xs font-semibold uppercase tracking-[0.22em] text-black transition-all duration-300 hover:bg-[#D7B980] disabled:cursor-not-allowed disabled:opacity-50"
+                  >
+                    {isSubmitting ? 'Submitting...' : 'Pay with Card and Submit'}
+                  </button>
+                </div>
+
+                <div className="border-t border-white/10 pt-6">
+                  <p className="mb-4 text-xs uppercase tracking-[0.22em] text-[#C8A96B]">
+                    Wallet Options
+                  </p>
+
+                  <div className="grid gap-4 md:grid-cols-3">
+                    {squareAvailable.applePay ? (
+                      <button
+                        type="button"
+                        onClick={() => payWithSquareMethod('applePay')}
+                        disabled={isSubmitting}
+                        className="bg-black px-5 py-4 text-sm font-semibold text-white transition-all duration-300 hover:bg-[#222] disabled:cursor-not-allowed disabled:opacity-50"
+                      >
+                        Apple Pay
+                      </button>
+                    ) : null}
+
+                    <div
+                      id="square-google-pay-container"
+                      className={squareAvailable.googlePay ? '' : 'hidden'}
+                    />
+
+                    <div
+                      id="square-cash-app-pay-container"
+                      className={squareAvailable.cashAppPay ? '' : 'hidden'}
+                    />
+                  </div>
+
+                  {squareLoading ? (
+                    <p className="mt-4 text-sm leading-7 text-[#AFA79B]">
+                      Loading available Square payment options...
+                    </p>
+                  ) : null}
+
+                  {!squareLoading &&
+                  !squareAvailable.applePay &&
+                  !squareAvailable.googlePay &&
+                  !squareAvailable.cashAppPay ? (
+                    <p className="mt-4 text-sm leading-7 text-[#AFA79B]">
+                      Apple Pay, Google Pay, and Cash App Pay only appear when
+                      the device, browser, and Square account support them.
+                    </p>
+                  ) : null}
+
+                  {squareError ? (
+                    <p className="mt-4 border border-red-300/40 bg-red-500/10 p-4 text-sm leading-7 text-red-100">
+                      {squareError}
+                    </p>
+                  ) : null}
+
                   <p className="mt-4 text-sm leading-7 text-[#AFA79B]">
-                    Loading secure Square payment form...
+                    Card details and wallet credentials are collected securely by
+                    Square. This site receives a one-time payment token, not the
+                    buyer's card or wallet credentials.
                   </p>
-                ) : null}
-                {squareError ? (
-                  <p className="mt-4 border border-red-300/40 bg-red-500/10 p-4 text-sm leading-7 text-red-100">
-                    {squareError}
-                  </p>
-                ) : null}
-                <p className="mt-4 text-sm leading-7 text-[#AFA79B]">
-                  Your card details are collected securely by Square. The site
-                  receives a one-time payment token, not your card number.
-                </p>
+                </div>
               </div>
             ) : null}
 
-            {selectedPayment ? (
+            {selectedPayment && paymentMethod !== 'Square' ? (
               <div className="mt-6 border border-[#C8A96B]/30 bg-[#C8A96B]/10 p-5 text-[#F5F2EB]">
                 <p className="mb-2 text-xs uppercase tracking-[0.22em] text-[#C8A96B]">
                   Confirmation Will Show
@@ -916,17 +1118,15 @@ export default function FamilyGatheringRegistrationForm() {
               Back to Registrants
             </button>
 
-            <button
-              type="submit"
-              disabled={isSubmitting || (paymentMethod === 'Square' && !squareReady)}
-              className="bg-[#C8A96B] px-8 py-4 text-xs font-semibold uppercase tracking-[0.22em] text-black transition-all duration-300 hover:bg-[#D7B980] disabled:cursor-not-allowed disabled:opacity-50"
-            >
-              {isSubmitting
-                ? 'Submitting...'
-                : paymentMethod === 'Square'
-                  ? 'Pay and Submit Registration'
-                  : 'Submit Registration'}
-            </button>
+            {paymentMethod !== 'Square' ? (
+              <button
+                type="submit"
+                disabled={isSubmitting}
+                className="bg-[#C8A96B] px-8 py-4 text-xs font-semibold uppercase tracking-[0.22em] text-black transition-all duration-300 hover:bg-[#D7B980] disabled:cursor-not-allowed disabled:opacity-50"
+              >
+                {isSubmitting ? 'Submitting...' : 'Submit Registration'}
+              </button>
+            ) : null}
           </div>
         </form>
       ) : null}
