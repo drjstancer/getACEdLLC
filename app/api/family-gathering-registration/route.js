@@ -8,8 +8,7 @@ const PAYMENT_INSTRUCTIONS = {
   'Money Order':
     'Hand-deliver or mail payment to Anita Prude at 1106 11th Ave NW, Aliceville, AL 35442.',
   CashApp: 'Send payment to $AnitaPrude.',
-  PayPal:
-    'A PayPal invoice from get ACEd, LLC will be sent to the primary registrant by email. Payment is due October 15, 2026.',
+  Square: 'Paid online by card through Square.',
 }
 
 function attendeePrice(age) {
@@ -18,221 +17,6 @@ function attendeePrice(age) {
 
 function cleanString(value) {
   return String(value || '').trim()
-}
-
-function splitName(fullName) {
-  const parts = cleanString(fullName).split(/\s+/).filter(Boolean)
-
-  if (parts.length === 0) {
-    return { givenName: 'Family', surname: 'Registrant' }
-  }
-
-  if (parts.length === 1) {
-    return { givenName: parts[0], surname: 'Registrant' }
-  }
-
-  return {
-    givenName: parts[0],
-    surname: parts.slice(1).join(' '),
-  }
-}
-
-function getPayPalBaseUrl() {
-  return process.env.PAYPAL_BASE_URL || 'https://api-m.paypal.com'
-}
-
-function isPayerViewUrl(url) {
-  return typeof url === 'string' && url.includes('/invoice/p')
-}
-
-async function getPayPalAccessToken() {
-  const clientId = process.env.PAYPAL_CLIENT_ID
-  const clientSecret = process.env.PAYPAL_CLIENT_SECRET
-
-  if (!clientId || !clientSecret) {
-    throw new Error('PayPal API credentials are not configured.')
-  }
-
-  const credentials = Buffer.from(`${clientId}:${clientSecret}`).toString(
-    'base64'
-  )
-
-  const response = await fetch(`${getPayPalBaseUrl()}/v1/oauth2/token`, {
-    method: 'POST',
-    headers: {
-      Authorization: `Basic ${credentials}`,
-      'Content-Type': 'application/x-www-form-urlencoded',
-    },
-    body: new URLSearchParams({
-      grant_type: 'client_credentials',
-    }),
-  })
-
-  const data = await response.json()
-
-  if (!response.ok) {
-    throw new Error(data.error_description || 'Unable to authenticate PayPal.')
-  }
-
-  return data.access_token
-}
-
-async function readPayPalJson(response) {
-  const text = await response.text()
-
-  if (!text) {
-    return {}
-  }
-
-  try {
-    return JSON.parse(text)
-  } catch (error) {
-    return {}
-  }
-}
-
-async function getPayPalInvoiceDetails({ invoiceId, accessToken }) {
-  const response = await fetch(
-    `${getPayPalBaseUrl()}/v2/invoicing/invoices/${invoiceId}`,
-    {
-      method: 'GET',
-      headers: {
-        Authorization: `Bearer ${accessToken}`,
-        'Content-Type': 'application/json',
-      },
-    }
-  )
-
-  const data = await readPayPalJson(response)
-
-  if (!response.ok) {
-    console.warn('Unable to retrieve PayPal invoice details:', data)
-    return {}
-  }
-
-  return data
-}
-
-async function createAndSendPayPalInvoice({
-  registrationId,
-  primary,
-  totalCost,
-  attendeeCount,
-}) {
-  const accessToken = await getPayPalAccessToken()
-  const { givenName, surname } = splitName(primary.fullName)
-  const today = new Date().toISOString().slice(0, 10)
-
-  const invoiceResponse = await fetch(
-    `${getPayPalBaseUrl()}/v2/invoicing/invoices`,
-    {
-      method: 'POST',
-      headers: {
-        Authorization: `Bearer ${accessToken}`,
-        'Content-Type': 'application/json',
-        Prefer: 'return=representation',
-      },
-      body: JSON.stringify({
-        detail: {
-          invoice_number: registrationId,
-          invoice_date: today,
-          currency_code: 'USD',
-          note:
-            'The Family Gathering 2026 registration. Includes registration, food, and t-shirt. Payment is due October 15, 2026.',
-          payment_term: {
-            term_type: 'DUE_ON_RECEIPT',
-          },
-        },
-        primary_recipients: [
-          {
-            billing_info: {
-              email_address: cleanString(primary.email),
-              name: {
-                given_name: givenName,
-                surname,
-              },
-            },
-          },
-        ],
-        items: [
-          {
-            name: 'The Family Gathering 2026 Registration',
-            description: `${attendeeCount} registrant${
-              attendeeCount === 1 ? '' : 's'
-            } for Thanksgiving Day, Thursday, November 26, 2026. Payment is due October 15, 2026.`,
-            quantity: '1',
-            unit_amount: {
-              currency_code: 'USD',
-              value: totalCost.toFixed(2),
-            },
-            unit_of_measure: 'QUANTITY',
-          },
-        ],
-      }),
-    }
-  )
-
-  const invoiceData = await readPayPalJson(invoiceResponse)
-
-  if (!invoiceResponse.ok) {
-    throw new Error(
-      invoiceData.details?.[0]?.description ||
-        invoiceData.message ||
-        invoiceData.error ||
-        'Unable to create invoice.'
-    )
-  }
-
-  const invoiceId = invoiceData.id
-
-  const sendResponse = await fetch(
-    `${getPayPalBaseUrl()}/v2/invoicing/invoices/${invoiceId}/send`,
-    {
-      method: 'POST',
-      headers: {
-        Authorization: `Bearer ${accessToken}`,
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        send_to_invoicer: true,
-        send_to_recipient: true,
-        subject: 'The Family Gathering 2026 Registration Invoice',
-        note:
-          'Thank you for registering for The Family Gathering. Payment is due October 15, 2026.',
-      }),
-    }
-  )
-
-  const sendData = await readPayPalJson(sendResponse)
-
-  if (!sendResponse.ok) {
-    throw new Error(
-      sendData.details?.[0]?.description ||
-        sendData.message ||
-        sendData.error ||
-        'Invoice created but not sent.'
-    )
-  }
-
-  const invoiceDetails = await getPayPalInvoiceDetails({
-    invoiceId,
-    accessToken,
-  })
-
-  const invoiceUrlCandidates = [
-    invoiceDetails.metadata?.recipient_view_url,
-    sendData?.rel === 'payer-view' ? sendData.href : '',
-    invoiceData.metadata?.recipient_view_url,
-    invoiceData.links?.find((link) => link.rel === 'payer-view')?.href,
-  ].filter(Boolean)
-
-  const invoiceUrl =
-    invoiceUrlCandidates.find((candidate) => isPayerViewUrl(candidate)) || ''
-
-  return {
-    invoiceId,
-    invoiceUrl,
-  }
 }
 
 function normalizeAttendees(primary, additionalRegistrants) {
@@ -265,7 +49,7 @@ function normalizeAttendees(primary, additionalRegistrants) {
   return [primaryAttendee, ...additional]
 }
 
-function validatePayload({ primary, additionalRegistrants, paymentMethod }) {
+function validatePayload({ primary, additionalRegistrants, paymentMethod, squareSourceId }) {
   if (!primary) {
     return 'Primary registrant information is required.'
   }
@@ -282,6 +66,10 @@ function validatePayload({ primary, additionalRegistrants, paymentMethod }) {
 
   if (!PAYMENT_INSTRUCTIONS[paymentMethod]) {
     return 'Please select a valid payment method.'
+  }
+
+  if (paymentMethod === 'Square' && !cleanString(squareSourceId)) {
+    return 'Square payment information is required to pay online.'
   }
 
   const allRegistrants = normalizeAttendees(primary, additionalRegistrants)
@@ -304,6 +92,76 @@ function validatePayload({ primary, additionalRegistrants, paymentMethod }) {
   }
 
   return ''
+}
+
+function getSquareBaseUrl() {
+  return process.env.SQUARE_ENVIRONMENT === 'sandbox'
+    ? 'https://connect.squareupsandbox.com'
+    : 'https://connect.squareup.com'
+}
+
+async function readJsonResponse(response) {
+  const text = await response.text()
+
+  if (!text) {
+    return {}
+  }
+
+  try {
+    return JSON.parse(text)
+  } catch (error) {
+    return {}
+  }
+}
+
+async function createSquarePayment({
+  sourceId,
+  registrationId,
+  primary,
+  totalCost,
+}) {
+  const accessToken = process.env.SQUARE_ACCESS_TOKEN
+  const locationId = process.env.SQUARE_LOCATION_ID
+
+  if (!accessToken || !locationId) {
+    throw new Error('Square payments are not configured.')
+  }
+
+  const response = await fetch(`${getSquareBaseUrl()}/v2/payments`, {
+    method: 'POST',
+    headers: {
+      Authorization: `Bearer ${accessToken}`,
+      'Content-Type': 'application/json',
+      'Square-Version': '2026-07-15',
+    },
+    body: JSON.stringify({
+      source_id: sourceId,
+      idempotency_key: registrationId,
+      amount_money: {
+        amount: Math.round(Number(totalCost) * 100),
+        currency: 'USD',
+      },
+      autocomplete: true,
+      location_id: locationId,
+      reference_id: registrationId,
+      buyer_email_address: cleanString(primary.email),
+      note: `The Family Gathering 2026 registration ${registrationId}`,
+    }),
+  })
+
+  const data = await readJsonResponse(response)
+
+  if (!response.ok) {
+    const errorMessage =
+      data.errors
+        ?.map((squareError) => squareError.detail || squareError.code)
+        .filter(Boolean)
+        .join(' ') || 'Square could not process the payment.'
+
+    throw new Error(errorMessage)
+  }
+
+  return data.payment || {}
 }
 
 async function saveRegistrationToAppsScript({ registration, attendees }) {
@@ -364,7 +222,8 @@ async function sendEmails({
   totalCost,
   paymentMethod,
   paymentInstructions,
-  paypalInvoiceUrl,
+  squarePaymentId,
+  squareReceiptUrl,
   warning,
 }) {
   if (!process.env.RESEND_API_KEY) {
@@ -404,8 +263,20 @@ async function sendEmails({
           <p><strong>Primary Registrant:</strong> ${primary.fullName}</p>
           <p><strong>Email:</strong> ${primary.email}</p>
           <p><strong>Phone:</strong> ${primary.phone}</p>
-          <p><strong>Payment Method:</strong> ${paymentMethod}</p>
+          <p><strong>Payment Method:</strong> ${
+            paymentMethod === 'Square' ? 'Pay Online' : paymentMethod
+          }</p>
           <p><strong>Total:</strong> $${totalCost}</p>
+          ${
+            squarePaymentId
+              ? `<p><strong>Square Payment ID:</strong> ${squarePaymentId}</p>`
+              : ''
+          }
+          ${
+            squareReceiptUrl
+              ? `<p><a href="${squareReceiptUrl}">View Square receipt</a></p>`
+              : ''
+          }
           ${
             warning
               ? `<p style="color: #92400e;"><strong>Warning:</strong> ${warning}</p>`
@@ -442,14 +313,21 @@ async function sendEmails({
 
         <p><strong>Registration ID:</strong> ${registrationId}</p>
         <p><strong>Total:</strong> $${totalCost}</p>
-        <p><strong>Payment Method:</strong> ${paymentMethod}</p>
+        <p><strong>Payment Method:</strong> ${
+          paymentMethod === 'Square' ? 'Pay Online' : paymentMethod
+        }</p>
+        ${
+          squarePaymentId
+            ? `<p><strong>Square Payment ID:</strong> ${squarePaymentId}</p>`
+            : ''
+        }
 
         <div style="margin: 24px 0; padding: 20px; background: #f5f2eb; border-left: 4px solid #C8A96B;">
           <p><strong>Payment Instructions:</strong></p>
           <p>${paymentInstructions}</p>
           ${
-            paypalInvoiceUrl
-              ? `<p><a href="${paypalInvoiceUrl}">View PayPal invoice</a></p>`
+            squareReceiptUrl
+              ? `<p><a href="${squareReceiptUrl}">View Square receipt</a></p>`
               : ''
           }
           ${
@@ -476,11 +354,13 @@ export async function POST(request) {
       ? body.additionalRegistrants
       : []
     const paymentMethod = body.paymentMethod
+    const squareSourceId = body.squareSourceId
 
     const validationError = validatePayload({
       primary,
       additionalRegistrants,
       paymentMethod,
+      squareSourceId,
     })
 
     if (validationError) {
@@ -493,35 +373,32 @@ export async function POST(request) {
       (sum, attendee) => sum + attendeePrice(attendee.age),
       0
     )
-    const paymentInstructions = PAYMENT_INSTRUCTIONS[paymentMethod]
     const submittedAt = new Date().toISOString()
     const registrationId = `TFG-${submittedAt.slice(0, 10).replace(/-/g, '')}-${randomUUID()
       .slice(0, 8)
       .toUpperCase()}`
 
-    let paypalInvoiceId = ''
-    let paypalInvoiceUrl = ''
-    let warning = ''
     let paymentStatus = 'Payment Pending'
+    let paymentInstructions = PAYMENT_INSTRUCTIONS[paymentMethod]
+    let squarePaymentId = ''
+    let squareReceiptUrl = ''
+    let warning = ''
 
-    if (paymentMethod === 'PayPal') {
-      try {
-        const invoice = await createAndSendPayPalInvoice({
-          registrationId,
-          primary,
-          totalCost,
-          attendeeCount,
-        })
+    if (paymentMethod === 'Square') {
+      const squarePayment = await createSquarePayment({
+        sourceId: cleanString(squareSourceId),
+        registrationId,
+        primary,
+        totalCost,
+      })
 
-        paypalInvoiceId = invoice.invoiceId || ''
-        paypalInvoiceUrl = invoice.invoiceUrl || ''
-        paymentStatus = 'PayPal Invoice Sent'
-      } catch (paypalError) {
-        console.error('PayPal invoice error:', paypalError)
-        paymentStatus = 'PayPal Invoice Pending Manual Follow-Up'
-        warning =
-          'Your registration was received, but the PayPal invoice could not be created automatically. A manual invoice will be sent to the email address provided.'
-      }
+      squarePaymentId = squarePayment.id || ''
+      squareReceiptUrl = squarePayment.receipt_url || ''
+      paymentStatus = squarePayment.status === 'COMPLETED' ? 'Paid' : `Square ${squarePayment.status || 'Payment Submitted'}`
+      paymentInstructions =
+        paymentStatus === 'Paid'
+          ? 'Your online payment has been received through Square.'
+          : 'Your online payment was submitted through Square. Please contact the organizer if you have questions.'
     }
 
     const attendeesForSheet = attendees.map((attendee) => ({
@@ -543,9 +420,13 @@ export async function POST(request) {
       paymentMethod,
       paymentStatus,
       paymentInstructions,
-      paypalInvoiceId,
-      paypalInvoiceUrl,
-      notes: warning,
+      paypalInvoiceId: squarePaymentId,
+      paypalInvoiceUrl: squareReceiptUrl,
+      notes: squarePaymentId
+        ? `Square payment ID: ${squarePaymentId}${
+            squareReceiptUrl ? ` | Receipt: ${squareReceiptUrl}` : ''
+          }`
+        : warning,
       source: 'get ACEd website',
     }
 
@@ -561,7 +442,8 @@ export async function POST(request) {
       totalCost,
       paymentMethod,
       paymentInstructions,
-      paypalInvoiceUrl,
+      squarePaymentId,
+      squareReceiptUrl,
       warning,
     })
 
@@ -573,7 +455,8 @@ export async function POST(request) {
       totalCost,
       paymentMethod,
       paymentInstructions,
-      paypalInvoiceUrl,
+      squarePaymentId,
+      squareReceiptUrl,
       warning,
     })
   } catch (error) {
