@@ -3,6 +3,10 @@ import { resend } from '../../../lib/resend'
 
 export const runtime = 'nodejs'
 
+const BASE_ADULT_PRICE = 50
+const BASE_CHILD_PRICE = 25
+const DIGITAL_ADULT_PRICE = 52
+const DIGITAL_CHILD_PRICE = 26.5
 const SQUARE_TEST_AMOUNT = 1
 
 const PAYMENT_INSTRUCTIONS = {
@@ -10,15 +14,40 @@ const PAYMENT_INSTRUCTIONS = {
   'Money Order':
     'Hand-deliver or mail payment to Anita Prude at 1106 11th Ave NW, Aliceville, AL 35442.',
   CashApp: 'Send payment to $AnitaPrude.',
-  Square: 'Paid online by card through Square.',
-}
-
-function attendeePrice(age) {
-  return Number(age) >= 12 ? 50 : 25
+  Square: 'Paid online through Square.',
 }
 
 function cleanString(value) {
   return String(value || '').trim()
+}
+
+function isDigitalPayment(method) {
+  return method === 'CashApp' || method === 'Square'
+}
+
+function attendeePrice(age, paymentMethod = '') {
+  const parsedAge = Number(age)
+  if (Number.isNaN(parsedAge) || parsedAge < 0) return 0
+
+  const adultPrice = isDigitalPayment(paymentMethod) ? DIGITAL_ADULT_PRICE : BASE_ADULT_PRICE
+  const childPrice = isDigitalPayment(paymentMethod) ? DIGITAL_CHILD_PRICE : BASE_CHILD_PRICE
+
+  return parsedAge >= 12 ? adultPrice : childPrice
+}
+
+function baseAttendeePrice(age) {
+  const parsedAge = Number(age)
+  if (Number.isNaN(parsedAge) || parsedAge < 0) return 0
+  return parsedAge >= 12 ? BASE_ADULT_PRICE : BASE_CHILD_PRICE
+}
+
+function formatMoney(value) {
+  return Number(value).toLocaleString('en-US', {
+    style: 'currency',
+    currency: 'USD',
+    minimumFractionDigits: Number(value) % 1 === 0 ? 0 : 2,
+    maximumFractionDigits: 2,
+  })
 }
 
 function normalizeAttendees(primary, additionalRegistrants) {
@@ -52,9 +81,7 @@ function normalizeAttendees(primary, additionalRegistrants) {
 }
 
 function validatePayload({ primary, additionalRegistrants, paymentMethod, squareSourceId }) {
-  if (!primary) {
-    return 'Primary registrant information is required.'
-  }
+  if (!primary) return 'Primary registrant information is required.'
 
   if (
     !cleanString(primary.fullName) ||
@@ -75,7 +102,6 @@ function validatePayload({ primary, additionalRegistrants, paymentMethod, square
   }
 
   const allRegistrants = normalizeAttendees(primary, additionalRegistrants)
-
   const invalidRegistrant = allRegistrants.find((registrant) => {
     return (
       !registrant.fullName ||
@@ -104,10 +130,7 @@ function getSquareBaseUrl() {
 
 async function readJsonResponse(response) {
   const text = await response.text()
-
-  if (!text) {
-    return {}
-  }
+  if (!text) return {}
 
   try {
     return JSON.parse(text)
@@ -116,20 +139,11 @@ async function readJsonResponse(response) {
   }
 }
 
-async function createSquarePayment({
-  sourceId,
-  registrationId,
-  primary,
-  amountToCharge,
-  squarePaymentType,
-  paymentTest,
-}) {
+async function createSquarePayment({ sourceId, registrationId, primary, amountToCharge, squarePaymentType, paymentTest }) {
   const accessToken = process.env.SQUARE_ACCESS_TOKEN
   const locationId = process.env.SQUARE_LOCATION_ID
 
-  if (!accessToken || !locationId) {
-    throw new Error('Square payments are not configured.')
-  }
+  if (!accessToken || !locationId) throw new Error('Square payments are not configured.')
 
   const response = await fetch(`${getSquareBaseUrl()}/v2/payments`, {
     method: 'POST',
@@ -180,14 +194,8 @@ async function saveRegistrationToAppsScript({ registration, attendees }) {
 
   const response = await fetch(appsScriptUrl, {
     method: 'POST',
-    headers: {
-      'Content-Type': 'text/plain;charset=utf-8',
-    },
-    body: JSON.stringify({
-      secret,
-      registration,
-      attendees,
-    }),
+    headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+    body: JSON.stringify({ secret, registration, attendees }),
   })
 
   const text = await response.text()
@@ -196,26 +204,17 @@ async function saveRegistrationToAppsScript({ registration, attendees }) {
   try {
     data = text ? JSON.parse(text) : {}
   } catch (error) {
-    const snippet = text
-      .slice(0, 180)
-      .replace(/\s+/g, ' ')
-      .trim()
-
+    const snippet = text.slice(0, 180).replace(/\s+/g, ' ').trim()
     console.error('Apps Script non-JSON response:', {
       status: response.status,
       contentType: response.headers.get('content-type'),
       snippet,
     })
-
-    throw new Error(
-      'Apps Script did not return JSON. Check that the Web App URL ends in /exec, is deployed, authorized, and set to Anyone access.'
-    )
+    throw new Error('Apps Script did not return JSON. Check the Web App deployment and /exec URL.')
   }
 
   if (!response.ok || data.success === false) {
-    throw new Error(
-      data.error || 'Unable to save the registration to Google Sheets.'
-    )
+    throw new Error(data.error || 'Unable to save the registration to Google Sheets.')
   }
 
   return data
@@ -226,6 +225,7 @@ async function sendEmails({
   attendees,
   registrationId,
   totalCost,
+  baseTotalCost,
   paymentMethod,
   paymentInstructions,
   squarePaymentId,
@@ -233,9 +233,7 @@ async function sendEmails({
   warning,
   paymentTest,
 }) {
-  if (!process.env.RESEND_API_KEY) {
-    return
-  }
+  if (!process.env.RESEND_API_KEY) return
 
   const adminEmail =
     process.env.FAMILY_GATHERING_ADMIN_EMAIL ||
@@ -249,13 +247,48 @@ async function sendEmails({
           <td style="padding: 8px; border-bottom: 1px solid #ddd;">${attendee.fullName}</td>
           <td style="padding: 8px; border-bottom: 1px solid #ddd;">${attendee.age}</td>
           <td style="padding: 8px; border-bottom: 1px solid #ddd;">${attendee.tShirtSize}</td>
-          <td style="padding: 8px; border-bottom: 1px solid #ddd;">$${attendeePrice(
-            attendee.age
-          )}</td>
+          <td style="padding: 8px; border-bottom: 1px solid #ddd;">${formatMoney(attendee.price)}</td>
         </tr>
       `
     )
     .join('')
+
+  const paymentLabel = paymentMethod === 'Square' ? 'Pay Online' : paymentMethod
+
+  const htmlBody = `
+    <div style="font-family: Arial, sans-serif; line-height: 1.8; color: #111111; max-width: 760px; margin: 0 auto;">
+      <h2>${paymentTest ? 'Square Test Payment Confirmation' : 'The Family Gathering Registration Confirmation'}</h2>
+      <p>Thank you, ${primary.fullName}. ${paymentTest ? 'Your Square test payment has been received.' : 'Your family registration has been received.'}</p>
+      <p><strong>Registration ID:</strong> ${registrationId}</p>
+      <p><strong>Total:</strong> ${formatMoney(totalCost)}</p>
+      ${baseTotalCost !== totalCost ? `<p><strong>Base registration value:</strong> ${formatMoney(baseTotalCost)}</p>` : ''}
+      <p><strong>Payment Method:</strong> ${paymentLabel}</p>
+      ${squarePaymentId ? `<p><strong>Square Payment ID:</strong> ${squarePaymentId}</p>` : ''}
+      <div style="margin: 24px 0; padding: 20px; background: #f5f2eb; border-left: 4px solid #C8A96B;">
+        <p><strong>Payment Instructions:</strong></p>
+        <p>${paymentInstructions}</p>
+        ${squareReceiptUrl ? `<p><a href="${squareReceiptUrl}">View Square receipt</a></p>` : ''}
+        ${warning ? `<p style="color: #92400e;"><strong>Note:</strong> ${warning}</p>` : ''}
+      </div>
+      <h3>Registrants</h3>
+      <table style="border-collapse: collapse; width: 100%;">
+        <thead>
+          <tr>
+            <th align="left" style="padding: 8px; border-bottom: 2px solid #111;">#</th>
+            <th align="left" style="padding: 8px; border-bottom: 2px solid #111;">Name</th>
+            <th align="left" style="padding: 8px; border-bottom: 2px solid #111;">Age</th>
+            <th align="left" style="padding: 8px; border-bottom: 2px solid #111;">T-Shirt</th>
+            <th align="left" style="padding: 8px; border-bottom: 2px solid #111;">Amount</th>
+          </tr>
+        </thead>
+        <tbody>${attendeeListHtml}</tbody>
+      </table>
+      <p style="margin-top: 24px;">
+        Event Date: Thursday, November 26, 2026<br />
+        Location: National Guard Armory, Aliceville, Alabama
+      </p>
+    </div>
+  `
 
   if (adminEmail) {
     await resend.emails.send({
@@ -263,48 +296,7 @@ async function sendEmails({
       to: adminEmail,
       reply_to: primary.email,
       subject: `${paymentTest ? 'TEST - ' : ''}New Family Gathering Registration: ${primary.fullName}`,
-      html: `
-        <div style="font-family: Arial, sans-serif; line-height: 1.7; color: #111111;">
-          <h2>${paymentTest ? 'Square Test Payment' : 'New Family Gathering Registration'}</h2>
-          <p><strong>Registration ID:</strong> ${registrationId}</p>
-          <p><strong>Primary Registrant:</strong> ${primary.fullName}</p>
-          <p><strong>Email:</strong> ${primary.email}</p>
-          <p><strong>Phone:</strong> ${primary.phone}</p>
-          <p><strong>Payment Method:</strong> ${
-            paymentMethod === 'Square' ? 'Pay Online' : paymentMethod
-          }</p>
-          <p><strong>Total Charged:</strong> $${totalCost}</p>
-          ${
-            squarePaymentId
-              ? `<p><strong>Square Payment ID:</strong> ${squarePaymentId}</p>`
-              : ''
-          }
-          ${
-            squareReceiptUrl
-              ? `<p><a href="${squareReceiptUrl}">View Square receipt</a></p>`
-              : ''
-          }
-          ${
-            warning
-              ? `<p style="color: #92400e;"><strong>Warning:</strong> ${warning}</p>`
-              : ''
-          }
-
-          <h3>Registrants</h3>
-          <table style="border-collapse: collapse; width: 100%;">
-            <thead>
-              <tr>
-                <th align="left" style="padding: 8px; border-bottom: 2px solid #111;">#</th>
-                <th align="left" style="padding: 8px; border-bottom: 2px solid #111;">Name</th>
-                <th align="left" style="padding: 8px; border-bottom: 2px solid #111;">Age</th>
-                <th align="left" style="padding: 8px; border-bottom: 2px solid #111;">T-Shirt</th>
-                <th align="left" style="padding: 8px; border-bottom: 2px solid #111;">Price</th>
-              </tr>
-            </thead>
-            <tbody>${attendeeListHtml}</tbody>
-          </table>
-        </div>
-      `,
+      html: htmlBody,
     })
   }
 
@@ -312,48 +304,7 @@ async function sendEmails({
     from: 'get ACEd, LLC <booking@getacedllc.com>',
     to: primary.email,
     subject: `${paymentTest ? 'TEST - ' : ''}The Family Gathering Registration Confirmation`,
-    html: `
-      <div style="font-family: Arial, sans-serif; line-height: 1.8; color: #111111; max-width: 680px; margin: 0 auto;">
-        <h2>${paymentTest ? 'Square Test Payment Confirmation' : 'The Family Gathering Registration Confirmation'}</h2>
-
-        <p>Thank you, ${primary.fullName}. ${
-          paymentTest
-            ? 'Your Square test payment has been received.'
-            : 'Your family registration has been received.'
-        }</p>
-
-        <p><strong>Registration ID:</strong> ${registrationId}</p>
-        <p><strong>Total Charged:</strong> $${totalCost}</p>
-        <p><strong>Payment Method:</strong> ${
-          paymentMethod === 'Square' ? 'Pay Online' : paymentMethod
-        }</p>
-        ${
-          squarePaymentId
-            ? `<p><strong>Square Payment ID:</strong> ${squarePaymentId}</p>`
-            : ''
-        }
-
-        <div style="margin: 24px 0; padding: 20px; background: #f5f2eb; border-left: 4px solid #C8A96B;">
-          <p><strong>Payment Instructions:</strong></p>
-          <p>${paymentInstructions}</p>
-          ${
-            squareReceiptUrl
-              ? `<p><a href="${squareReceiptUrl}">View Square receipt</a></p>`
-              : ''
-          }
-          ${
-            warning
-              ? `<p style="color: #92400e;"><strong>Note:</strong> ${warning}</p>`
-              : ''
-          }
-        </div>
-
-        <p>
-          Event Date: Thursday, November 26, 2026<br />
-          Location: National Guard Armory, Aliceville, Alabama
-        </p>
-      </div>
-    `,
+    html: htmlBody,
   })
 }
 
@@ -361,32 +312,23 @@ export async function POST(request) {
   try {
     const body = await request.json()
     const primary = body.primary || {}
-    const additionalRegistrants = Array.isArray(body.additionalRegistrants)
-      ? body.additionalRegistrants
-      : []
+    const additionalRegistrants = Array.isArray(body.additionalRegistrants) ? body.additionalRegistrants : []
     const paymentMethod = body.paymentMethod
     const squareSourceId = body.squareSourceId
     const squarePaymentType = cleanString(body.squarePaymentType) || 'Square'
     const paymentTest = paymentMethod === 'Square' && body.paymentTest === true
 
-    const validationError = validatePayload({
-      primary,
-      additionalRegistrants,
-      paymentMethod,
-      squareSourceId,
-    })
-
-    if (validationError) {
-      return Response.json({ error: validationError }, { status: 400 })
-    }
+    const validationError = validatePayload({ primary, additionalRegistrants, paymentMethod, squareSourceId })
+    if (validationError) return Response.json({ error: validationError }, { status: 400 })
 
     const attendees = normalizeAttendees(primary, additionalRegistrants)
     const attendeeCount = attendees.length
-    const registrationTotalCost = attendees.reduce(
-      (sum, attendee) => sum + attendeePrice(attendee.age),
+    const baseTotalCost = attendees.reduce((sum, attendee) => sum + baseAttendeePrice(attendee.age), 0)
+    const calculatedTotalCost = attendees.reduce(
+      (sum, attendee) => sum + attendeePrice(attendee.age, paymentMethod),
       0
     )
-    const totalCost = paymentTest ? SQUARE_TEST_AMOUNT : registrationTotalCost
+    const totalCost = paymentTest ? SQUARE_TEST_AMOUNT : calculatedTotalCost
     const submittedAt = new Date().toISOString()
     const registrationIdPrefix = paymentTest ? 'TFG-TEST' : 'TFG'
     const registrationId = `${registrationIdPrefix}-${submittedAt.slice(0, 10).replace(/-/g, '')}-${randomUUID()
@@ -398,6 +340,10 @@ export async function POST(request) {
     let squarePaymentId = ''
     let squareReceiptUrl = ''
     let warning = ''
+
+    if (paymentMethod === 'CashApp') {
+      paymentInstructions = `Send ${formatMoney(totalCost)} to $AnitaPrude.`
+    }
 
     if (paymentMethod === 'Square') {
       const squarePayment = await createSquarePayment({
@@ -423,13 +369,13 @@ export async function POST(request) {
           ? 'Your online payment has been received through Square.'
           : 'Your online payment was submitted through Square. Please contact the organizer if you have questions.'
       warning = paymentTest
-        ? `This was a $1.00 Square test payment. The actual calculated registration total would have been $${registrationTotalCost}. Archive or delete this test row after verification.`
+        ? `This was a $1.00 Square test payment. The actual calculated registration total would have been ${formatMoney(calculatedTotalCost)}.`
         : ''
     }
 
     const attendeesForSheet = attendees.map((attendee) => ({
       ...attendee,
-      price: attendeePrice(attendee.age),
+      price: paymentTest ? baseAttendeePrice(attendee.age) : attendeePrice(attendee.age, paymentMethod),
     }))
 
     const registration = {
@@ -448,24 +394,25 @@ export async function POST(request) {
       paymentInstructions,
       paypalInvoiceId: squarePaymentId,
       paypalInvoiceUrl: squareReceiptUrl,
-      notes: squarePaymentId
-        ? `Square${paymentTest ? ' TEST' : ''} ${squarePaymentType} payment ID: ${squarePaymentId}${
-            squareReceiptUrl ? ` | Receipt: ${squareReceiptUrl}` : ''
-          }${paymentTest ? ` | Actual registration total would have been $${registrationTotalCost}` : ''}`
-        : warning,
+      notes:
+        baseTotalCost !== totalCost
+          ? `Base registration total: ${formatMoney(baseTotalCost)} | Digital/payment total: ${formatMoney(totalCost)}${
+              squarePaymentId ? ` | Square payment ID: ${squarePaymentId}` : ''
+            }${squareReceiptUrl ? ` | Receipt: ${squareReceiptUrl}` : ''}`
+          : squarePaymentId
+            ? `Square ${squarePaymentType} payment ID: ${squarePaymentId}${squareReceiptUrl ? ` | Receipt: ${squareReceiptUrl}` : ''}`
+            : warning,
       source: paymentTest ? 'get ACEd website - Square test' : 'get ACEd website',
     }
 
-    await saveRegistrationToAppsScript({
-      registration,
-      attendees: attendeesForSheet,
-    })
+    await saveRegistrationToAppsScript({ registration, attendees: attendeesForSheet })
 
     await sendEmails({
       primary,
-      attendees,
+      attendees: attendeesForSheet,
       registrationId,
       totalCost,
+      baseTotalCost,
       paymentMethod,
       paymentInstructions,
       squarePaymentId,
@@ -480,7 +427,7 @@ export async function POST(request) {
       primaryName: cleanString(primary.fullName),
       attendeeCount,
       totalCost,
-      registrationTotalCost,
+      baseTotalCost,
       chargedAmount: totalCost,
       paymentMethod,
       paymentInstructions,
@@ -491,13 +438,8 @@ export async function POST(request) {
     })
   } catch (error) {
     console.error(error)
-
     return Response.json(
-      {
-        error:
-          error.message ||
-          'Something went wrong while submitting the registration.',
-      },
+      { error: error.message || 'Something went wrong while submitting the registration.' },
       { status: 500 }
     )
   }
