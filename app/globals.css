@@ -59,6 +59,10 @@ button {
     transform var(--transition-standard);
 }
 
+body:has([data-family-gathering-form]) main > section:first-child header > div:first-child {
+  display: none !important;
+}
+
 [data-family-gathering-form] > div {
   background: #F9EED8 !important;
   border-color: #D9C4A0 !important;
