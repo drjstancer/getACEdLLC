@@ -2,7 +2,7 @@
 
 import { useMemo, useState } from 'react'
 
-const crownPhoto = 'https://images.pexels.com/photos/10873899/pexels-photo-10873899.jpeg?auto=compress&cs=tinysrgb&w=1800'
+const crownPhoto = 'https://images.rawpixel.com/image_800/cHJpdmF0ZS9sci9pbWFnZXMvd2Vic2l0ZS8yMDIzLTEyL3Jhd3BpeGVsX29mZmljZV8zN19waG90b19vZl9hX2Nyb3duX2dvbGRfc2ltcGxlX2NsZWFuX2lzb2xhdGVkX18wNDNmYWExNS04YmZmLTQ5MWQtYWMzZS1lYWU5ZDM4ZDdkM2NfMS5qcGc.jpg'
 
 const affirmationLines = [
   'I belong here.',
