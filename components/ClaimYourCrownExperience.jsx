@@ -2,7 +2,7 @@
 
 import { useMemo, useState } from 'react'
 
-const crownPhoto = 'https://images.rawpixel.com/image_800/cHJpdmF0ZS9sci9pbWFnZXMvd2Vic2l0ZS8yMDIzLTEyL3Jhd3BpeGVsX29mZmljZV8zN19waG90b19vZl9hX2Nyb3duX2dvbGRfc2ltcGxlX2NsZWFuX2lzb2xhdGVkX18wNDNmYWExNS04YmZmLTQ5MWQtYWMzZS1lYWU5ZDM4ZDdkM2NfMS5qcGc.jpg'
+const crownPhoto = '/claim-your-crown/hero-crown.jpg'
 
 const affirmationLines = [
   'I belong here.',
@@ -23,11 +23,9 @@ const affirmationLines = [
 function SectionHeader({ number, eyebrow, title }) {
   return (
     <div className="mb-10">
-      <p className="uppercase tracking-[0.32em] text-[#C8A96B] text-xs mb-5">{eyebrow}</p>
+      <p className="mb-5 text-xs uppercase tracking-[0.32em] text-[#C8A96B]">{eyebrow}</p>
       <div className="flex items-start gap-5">
-        <span className="mt-1 flex h-11 w-11 shrink-0 items-center justify-center rounded-full border border-[#C8A96B]/40 text-sm text-[#C8A96B]">
-          {number}
-        </span>
+        <span className="mt-1 flex h-11 w-11 shrink-0 items-center justify-center rounded-full border border-[#C8A96B]/40 text-sm text-[#C8A96B]">{number}</span>
         <h2 className="font-serif text-4xl leading-[1.02] text-white md:text-6xl">{title}</h2>
       </div>
     </div>
@@ -82,6 +80,13 @@ export default function ClaimYourCrownExperience() {
     [responses.power1, responses.power2, responses.power3]
   )
 
+  const crownBg = {
+    backgroundImage: `url(${crownPhoto})`,
+    backgroundPosition: 'center',
+    backgroundRepeat: 'no-repeat',
+    backgroundSize: 'contain',
+  }
+
   return (
     <main className="min-h-screen bg-[#050505] text-[#F5F2EB]">
       <style jsx global>{`
@@ -95,29 +100,34 @@ export default function ClaimYourCrownExperience() {
       `}</style>
 
       <div className="cyc-screen">
-        <section className="relative flex min-h-[92vh] items-end overflow-hidden border-b border-white/10">
-          <div
-            className="absolute inset-0 scale-105 bg-cover bg-[center_28%]"
-            style={{ backgroundImage: `url(${crownPhoto})` }}
-            aria-hidden="true"
-          />
-          <div className="absolute inset-0 bg-[linear-gradient(90deg,rgba(0,0,0,.96)_0%,rgba(0,0,0,.82)_43%,rgba(0,0,0,.28)_75%,rgba(0,0,0,.58)_100%)]" />
-          <div className="absolute inset-0 bg-[linear-gradient(0deg,#050505_0%,transparent_40%)]" />
+        <section className="relative overflow-hidden border-b border-white/10">
+          <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_right,rgba(200,169,107,.16),transparent_30%)]" />
+          <div className="mx-auto grid min-h-[92vh] max-w-7xl items-center gap-12 px-6 pb-24 pt-40 lg:grid-cols-[1.05fr_.95fr] lg:px-12">
+            <div className="relative z-10">
+              <p className="mb-7 text-xs uppercase tracking-[0.4em] text-[#C8A96B]">Signature Educational Experience</p>
+              <h1 className="max-w-5xl font-serif text-6xl leading-[0.88] tracking-[-0.035em] text-white md:text-8xl lg:text-[7.4rem]">
+                Claiming Your Crown
+              </h1>
+              <p className="mt-8 max-w-3xl text-xl leading-relaxed text-[#D9D3C7] md:text-2xl">
+                Thriving as a Black Man in Higher Education
+              </p>
+              <p className="mt-8 max-w-3xl text-lg leading-[1.9] text-[#C8C1B5] md:text-xl">
+                The crown isn’t something someone else gives you. It is the clarity to know who you are, the community that keeps you grounded, the strategy to navigate systems, the legacy you choose to build, and the consistency to live it.
+              </p>
+              <div className="cyc-no-print mt-11 flex flex-wrap gap-4">
+                <a href="#clarity" className="bg-[#C8A96B] px-8 py-4 text-xs uppercase tracking-[0.2em] text-black transition hover:bg-[#D9BD83]">
+                  Begin the Experience
+                </a>
+                <a href="/contact?topic=claiming-your-crown" className="border border-white/20 px-8 py-4 text-xs uppercase tracking-[0.2em] text-white transition hover:border-[#C8A96B] hover:text-[#C8A96B]">
+                  Bring It to Your Campus
+                </a>
+              </div>
+            </div>
 
-          <div className="relative mx-auto w-full max-w-7xl px-6 pb-24 pt-40 lg:px-12 lg:pb-28">
-            <p className="mb-7 text-xs uppercase tracking-[0.4em] text-[#C8A96B]">Signature Educational Experience</p>
-            <h1 className="max-w-5xl font-serif text-6xl leading-[0.88] tracking-[-0.035em] text-white md:text-8xl lg:text-[7.6rem]">
-              Claiming Your Crown
-            </h1>
-            <p className="mt-8 max-w-3xl text-xl leading-relaxed text-[#D9D3C7] md:text-2xl">
-              Thriving as a Black Man in Higher Education
-            </p>
-            <p className="mt-8 max-w-3xl text-lg leading-[1.9] text-[#C8C1B5] md:text-xl">
-              The crown isn’t something someone else gives you. It is the clarity to know who you are, the community that keeps you grounded, the strategy to navigate systems, the legacy you choose to build, and the consistency to live it.
-            </p>
-            <div className="cyc-no-print mt-11 flex flex-wrap gap-4">
-              <a href="#clarity" className="bg-[#C8A96B] px-8 py-4 text-xs uppercase tracking-[0.2em] text-black transition hover:bg-[#D9BD83]">Begin the Experience</a>
-              <a href="/contact?topic=claiming-your-crown" className="border border-white/20 px-8 py-4 text-xs uppercase tracking-[0.2em] text-white transition hover:border-[#C8A96B] hover:text-[#C8A96B]">Bring It to Your Campus</a>
+            <div className="relative z-10 flex items-center justify-center">
+              <div className="relative w-full max-w-[640px] overflow-hidden border border-[#C8A96B]/20 bg-[#0A0A0A] p-8 shadow-[0_0_60px_rgba(0,0,0,.35)]">
+                <div className="aspect-[8/5] w-full" style={crownBg} aria-hidden="true" />
+              </div>
             </div>
           </div>
         </section>
@@ -214,7 +224,7 @@ export default function ClaimYourCrownExperience() {
         </section>
 
         <section className="relative overflow-hidden border-b border-white/10 py-32">
-          <div className="absolute inset-0 bg-cover bg-center opacity-30" style={{ backgroundImage: `url(${crownPhoto})` }} aria-hidden="true" />
+          <div className="absolute inset-0 opacity-25" style={crownBg} aria-hidden="true" />
           <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,rgba(200,169,107,.14),rgba(5,5,5,.93)_60%)]" />
           <div className="relative mx-auto max-w-5xl px-6 text-center lg:px-12">
             <p className="mb-6 text-xs uppercase tracking-[0.35em] text-[#C8A96B]">Consistency</p>
@@ -243,7 +253,7 @@ export default function ClaimYourCrownExperience() {
         </section>
 
         <section className="relative overflow-hidden border-b border-white/10 py-28">
-          <div className="absolute inset-0 bg-cover bg-center opacity-20" style={{ backgroundImage: `url(${crownPhoto})` }} aria-hidden="true" />
+          <div className="absolute inset-0 opacity-15" style={crownBg} aria-hidden="true" />
           <div className="absolute inset-0 bg-[linear-gradient(180deg,#050505_0%,rgba(5,5,5,.86)_45%,#050505_100%)]" />
           <div className="relative mx-auto max-w-4xl px-6 text-center lg:px-12">
             <p className="mb-7 text-xs uppercase tracking-[0.35em] text-[#C8A96B]">I Wear My Crown</p>
