@@ -21,6 +21,35 @@ export const metadata = {
 export default function ClaimYourCrownPage() {
   return (
     <SiteLayout>
+      <style>{`
+        .cyc-screen > section:first-child > div:first-child {
+          display: none !important;
+        }
+
+        .cyc-screen > section:first-child::before {
+          content: '';
+          position: absolute;
+          inset: 0;
+          background:
+            linear-gradient(90deg, rgba(0,0,0,.97) 0%, rgba(0,0,0,.87) 42%, rgba(0,0,0,.36) 68%, rgba(0,0,0,.58) 100%),
+            url('/claim-your-crown/hero-crown.svg') center right / contain no-repeat;
+          z-index: 0;
+          pointer-events: none;
+        }
+
+        .cyc-screen > section:first-child > div:last-child {
+          position: relative;
+          z-index: 2;
+        }
+
+        @media (max-width: 900px) {
+          .cyc-screen > section:first-child::before {
+            background:
+              linear-gradient(180deg, rgba(0,0,0,.48) 0%, rgba(0,0,0,.86) 55%, rgba(0,0,0,.98) 100%),
+              url('/claim-your-crown/hero-crown.svg') center 14% / 92% auto no-repeat;
+          }
+        }
+      `}</style>
       <ClaimYourCrownExperience />
     </SiteLayout>
   )
