@@ -19,6 +19,19 @@ export default function SpeakingPage() {
             success, mental health, and community-rooted institutional culture.
           </p>
 
+          <section className="mb-24 border border-[#C8A96B]/25 bg-[#C8A96B]/[0.06] p-10 md:p-14">
+            <p className="uppercase tracking-[0.25em] text-[#C8A96B] text-xs mb-5">Featured Signature Experience</p>
+            <h2 className="text-4xl md:text-5xl font-serif mb-4">Claiming Your Crown</h2>
+            <p className="text-xl text-white/90 mb-6">Thriving as a Black Man in Higher Education</p>
+            <p className="text-[#D8D3CA] leading-[1.9] max-w-4xl mb-8">
+              A facilitated educational experience exploring identity, intentional community, institutional navigation, self-advocacy, legacy, and the consistency required to thrive without shrinking.
+            </p>
+            <div className="flex flex-wrap gap-4">
+              <a href="/claim-your-crown" className="bg-[#C8A96B] text-black px-7 py-4 uppercase tracking-[0.18em] text-xs hover:bg-[#D9BD83] transition">Experience the Framework</a>
+              <a href="/contact?topic=claiming-your-crown" className="border border-white/20 px-7 py-4 uppercase tracking-[0.18em] text-xs hover:border-[#C8A96B] hover:text-[#C8A96B] transition">Book This Experience</a>
+            </div>
+          </section>
+
           <div className="grid md:grid-cols-2 gap-8 mb-24">
             {[
               'Transformational Educational Leadership',

@@ -8,6 +8,7 @@ const navigationItems = [
   { label: 'About', href: '/about' },
   { label: 'Expertise', href: '/expertise' },
   { label: 'Speaking', href: '/speaking' },
+  { label: 'Claiming Your Crown', href: '/claim-your-crown' },
   { label: 'Insights', href: '/insights' },
   { label: 'Contact', href: '/contact' },
 ]
@@ -32,7 +33,7 @@ export default function MobileNavigation() {
             : 'opacity-0 pointer-events-none'
         }`}
       >
-        <div className="flex flex-col items-center justify-center min-h-screen gap-10 px-6">
+        <div className="flex flex-col items-center justify-center min-h-screen gap-8 px-6">
           {navigationItems.map((item) => {
             const isActive = pathname === item.href
 
@@ -41,7 +42,7 @@ export default function MobileNavigation() {
                 key={item.href}
                 href={item.href}
                 onClick={() => setIsOpen(false)}
-                className={`text-2xl uppercase tracking-[0.18em] transition-all duration-300 ${
+                className={`text-xl uppercase tracking-[0.18em] text-center transition-all duration-300 ${
                   isActive ? 'text-[#C8A96B]' : 'text-[#F5F2EB]'
                 }`}
               >
