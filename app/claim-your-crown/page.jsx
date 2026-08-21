@@ -2,54 +2,39 @@ import SiteLayout from '../../components/SiteLayout'
 import ClaimYourCrownExperience from '../../components/ClaimYourCrownExperience'
 
 export const metadata = {
-  title: 'Claiming Your Crown | get ACEd, LLC',
+  title: 'Claiming Your Crown',
   description:
-    'An interactive reflection experience inspired by Dr. Joel Stancer’s Claiming Your Crown: Thriving as a Black Man in Higher Education.',
+    'Claiming Your Crown: Thriving as a Black Man in Higher Education — an interactive reflection experience centered on identity, community, institutional navigation, legacy, and consistency.',
   alternates: {
     canonical: 'https://www.getacedllc.com/claim-your-crown',
   },
   openGraph: {
     title: 'Claiming Your Crown | get ACEd, LLC',
     description:
-      'Identity. Community. Strategy. Legacy. Consistency. An interactive reflection experience for Black men in higher education.',
+      'The crown isn’t given. It’s claimed. Explore the interactive Claiming Your Crown reflection experience for Black men navigating higher education.',
     url: 'https://www.getacedllc.com/claim-your-crown',
     siteName: 'get ACEd, LLC',
     type: 'website',
+    images: [
+      {
+        url: 'https://www.getacedllc.com/claim-your-crown/hero-crown.jpg',
+        width: 900,
+        height: 506,
+        alt: 'Claiming Your Crown — get ACEd, LLC',
+      },
+    ],
+  },
+  twitter: {
+    card: 'summary_large_image',
+    title: 'Claiming Your Crown | get ACEd, LLC',
+    description: 'The crown isn’t given. It’s claimed.',
+    images: ['https://www.getacedllc.com/claim-your-crown/hero-crown.jpg'],
   },
 }
 
 export default function ClaimYourCrownPage() {
   return (
     <SiteLayout>
-      <style>{`
-        .cyc-screen > section:first-child > div:first-child {
-          display: none !important;
-        }
-
-        .cyc-screen > section:first-child::before {
-          content: '';
-          position: absolute;
-          inset: 0;
-          background:
-            linear-gradient(90deg, rgba(0,0,0,.97) 0%, rgba(0,0,0,.87) 42%, rgba(0,0,0,.36) 68%, rgba(0,0,0,.58) 100%),
-            url('/claim-your-crown/hero-crown.svg') center right / contain no-repeat;
-          z-index: 0;
-          pointer-events: none;
-        }
-
-        .cyc-screen > section:first-child > div:last-child {
-          position: relative;
-          z-index: 2;
-        }
-
-        @media (max-width: 900px) {
-          .cyc-screen > section:first-child::before {
-            background:
-              linear-gradient(180deg, rgba(0,0,0,.48) 0%, rgba(0,0,0,.86) 55%, rgba(0,0,0,.98) 100%),
-              url('/claim-your-crown/hero-crown.svg') center 14% / 92% auto no-repeat;
-          }
-        }
-      `}</style>
       <ClaimYourCrownExperience />
     </SiteLayout>
   )
