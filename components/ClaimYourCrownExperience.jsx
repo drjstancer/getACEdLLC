@@ -1,322 +1,50 @@
 "use client"
 
-import { useMemo, useState } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 
-const crownPhoto = '/claim-your-crown/hero-crown.jpg'
+const CROWN='/claim-your-crown/hero-crown.jpg'
+const STORE='getaced-crown-reflection-v4'
+const blank={theySay:'',iKnow:'',power1:'',power2:'',power3:'',academic:'',emotional:'',connector:'',truthTeller:'',weakestCircle:'',strengthenStep:'',systemChallenge:'',avoidedResource:'',advocacyAction:'',nameMeaning:'',semesterAction:'',weeklyCommitment:'',hardDaySentence:''}
+const affirm=['I belong here.','My presence matters.','I don’t shrink.','I take up space—appropriately and intentionally.','I don’t apologize for excellence.','I advocate for myself.','And for my success.','I wear my crown.','Even on hard days.','When I’m tired.','When I’m the only one.','I walk in different.','I walk in wearing my crown.']
+const stages=[['01','Clarity','Own Your Identity','clarity'],['02','Community','Build Your Village','community'],['03','Strategy','Master the System','strategy'],['04','Legacy','Define Your Legacy','legacy'],['05','Consistency','Wear Your Crown','consistency']]
 
-const affirmationLines = [
-  'I belong here.',
-  'My presence matters.',
-  'I don’t shrink.',
-  'I take up space—appropriately and intentionally.',
-  'I don’t apologize for excellence.',
-  'I advocate for myself.',
-  'And for my success.',
-  'I wear my crown.',
-  'Even on hard days.',
-  'When I’m tired.',
-  'When I’m the only one.',
-  'I walk in different.',
-  'I walk in wearing my crown.',
-]
-
-function SectionHeader({ number, eyebrow, title }) {
-  return (
-    <div className="mb-10">
-      <p className="mb-5 text-xs uppercase tracking-[0.32em] text-[#C8A96B]">{eyebrow}</p>
-      <div className="flex items-start gap-5">
-        <span className="mt-1 flex h-11 w-11 shrink-0 items-center justify-center rounded-full border border-[#C8A96B]/40 text-sm text-[#C8A96B]">{number}</span>
-        <h2 className="font-serif text-4xl leading-[1.02] text-white md:text-6xl">{title}</h2>
-      </div>
-    </div>
-  )
+function Field({id,label,value,onChange,placeholder,rows=1}){
+ const cls='w-full border border-white/12 bg-white/[.035] px-5 py-4 text-[#F5F2EB] outline-none placeholder:text-white/25 focus:border-[#C8A96B]/75 focus:bg-[#C8A96B]/[.04] transition'
+ return <div><label htmlFor={id} className="mb-3 block text-[.68rem] uppercase tracking-[.2em] text-[#C8A96B]">{label}</label>{rows>1?<textarea id={id} rows={rows} value={value} onChange={onChange} placeholder={placeholder} className={cls+' resize-y'}/>:<input id={id} value={value} onChange={onChange} placeholder={placeholder} className={cls}/>}</div>
 }
+function Head({n,k,t,children}){return <div><div className="mb-6 flex items-center gap-4 text-[.68rem] uppercase tracking-[.28em] text-[#C8A96B]"><span>{n}</span><span className="h-px w-10 bg-[#C8A96B]/60"/><span>{k}</span></div><h2 className="font-serif text-[clamp(3rem,7vw,6.5rem)] leading-[.92] tracking-[-.04em] text-white">{t}</h2>{children}</div>}
 
-function Field({ label, value, onChange, placeholder, rows = 1 }) {
-  const shared = 'w-full border border-white/10 bg-white/[0.035] px-5 py-4 text-[#F5F2EB] outline-none transition-all duration-300 placeholder:text-white/30 focus:border-[#C8A96B]/65 focus:bg-white/[0.05]'
+export default function ClaimYourCrownExperience(){
+ const [r,setR]=useState(blank),[ready,setReady]=useState(false),[claimed,setClaimed]=useState(false),[lines,setLines]=useState(0); const ref=useRef(null)
+ useEffect(()=>{try{const x=JSON.parse(localStorage.getItem(STORE)||'null');if(x)setR({...blank,...x})}catch{}setReady(true)},[])
+ useEffect(()=>{if(!ready)return;const t=setTimeout(()=>{try{localStorage.setItem(STORE,JSON.stringify(r))}catch{}},250);return()=>clearTimeout(t)},[r,ready])
+ useEffect(()=>{if(!claimed){setLines(0);return}if(matchMedia('(prefers-reduced-motion: reduce)').matches){setLines(affirm.length);return}let i=0;const t=setInterval(()=>{i++;setLines(i);if(i>=affirm.length)clearInterval(t)},420);return()=>clearInterval(t)},[claimed])
+ const set=k=>e=>{setR(v=>({...v,[k]:e.target.value}));if(k==='hardDaySentence')setClaimed(false)}
+ const progress=useMemo(()=>Math.round(Object.values(r).filter(v=>v.trim()).length/Object.keys(r).length*100),[r])
+ const claim=()=>{if(!r.hardDaySentence.trim()){document.getElementById('hardDaySentence')?.focus();return}setClaimed(true);setTimeout(()=>ref.current?.scrollIntoView({behavior:'smooth'}),180)}
+ const crownLight=.16+(lines/affirm.length)*.66
+ return <main className="overflow-hidden bg-[#050505] text-[#F5F2EB]"><style jsx global>{`html{scroll-behavior:smooth}.cyc-grain{background-image:radial-gradient(circle at 20% 20%,rgba(255,255,255,.025) 0 1px,transparent 1px),radial-gradient(circle at 80% 55%,rgba(255,255,255,.02) 0 1px,transparent 1px);background-size:23px 23px,31px 31px}@media print{nav,footer,.screen{display:none!important}.print{display:block!important}body{background:white!important;color:#111!important}}`}</style><div className="screen">
 
-  return (
-    <div>
-      <label className="mb-3 block text-xs uppercase tracking-[0.18em] text-[#C8A96B]">{label}</label>
-      {rows > 1 ? (
-        <textarea rows={rows} value={value} onChange={onChange} placeholder={placeholder} className={`${shared} resize-y`} />
-      ) : (
-        <input value={value} onChange={onChange} placeholder={placeholder} className={shared} />
-      )}
-    </div>
-  )
-}
+<section className="relative isolate min-h-[calc(100vh-6rem)] border-b border-white/10"><img src={CROWN} alt="Ornate ceremonial gold crown on a black background" className="absolute inset-y-0 right-0 h-full w-full object-cover object-center lg:w-[62%]"/><div className="absolute inset-0 bg-[linear-gradient(90deg,#050505_0%,rgba(5,5,5,.98)_25%,rgba(5,5,5,.72)_52%,rgba(5,5,5,.18)_78%,rgba(5,5,5,.48)_100%)]"/><div className="absolute inset-0 cyc-grain opacity-40"/><div className="relative z-10 mx-auto flex min-h-[calc(100vh-6rem)] max-w-7xl items-center px-6 py-24 lg:px-12"><div className="max-w-[790px]"><p className="mb-6 text-[.68rem] uppercase tracking-[.38em] text-[#C8A96B]">Claiming Your Crown</p><h1 className="font-serif text-[clamp(4rem,9vw,8.8rem)] leading-[.84] tracking-[-.055em] text-white">The crown isn’t given.<span className="mt-2 block text-[#C8A96B]">It’s claimed.</span></h1><p className="mt-8 max-w-2xl text-lg leading-8 text-[#D3CDC2] md:text-xl"><em>Thriving as a Black Man in Higher Education</em> — a guided experience about identity, community, institutional navigation, legacy, and consistency.</p><div className="mt-10 flex flex-wrap gap-3"><a href="#origin" className="bg-[#C8A96B] px-7 py-4 text-xs font-semibold uppercase tracking-[.2em] text-black hover:bg-[#D9BD83]">Begin the Experience</a><a href="/contact?topic=claiming-your-crown" className="border border-white/25 px-7 py-4 text-xs uppercase tracking-[.2em] text-white hover:border-[#C8A96B] hover:text-[#C8A96B]">Bring It to Your Campus</a></div><div className="mt-14 flex flex-wrap gap-x-7 gap-y-3 text-[.65rem] uppercase tracking-[.19em] text-white/45">{stages.map(s=><span key={s[1]}>{s[1]}</span>)}</div></div></div></section>
 
-export default function ClaimYourCrownExperience() {
-  const [responses, setResponses] = useState({
-    theySay: '',
-    iKnow: '',
-    power1: '',
-    power2: '',
-    power3: '',
-    academic: '',
-    emotional: '',
-    connector: '',
-    truthTeller: '',
-    weakestCircle: '',
-    strengthenStep: '',
-    systemChallenge: '',
-    avoidedResource: '',
-    advocacyAction: '',
-    nameMeaning: '',
-    semesterAction: '',
-    weeklyCommitment: '',
-    hardDaySentence: '',
-  })
-  const [showDeclaration, setShowDeclaration] = useState(false)
+<section id="origin" className="border-b border-white/10 bg-[#080808] py-24 md:py-32"><div className="mx-auto grid max-w-7xl gap-14 px-6 lg:grid-cols-[.7fr_1.3fr] lg:px-12"><div><p className="text-[.68rem] uppercase tracking-[.3em] text-[#C8A96B]">Where the crown began</p><p className="mt-5 font-serif text-4xl leading-tight text-white md:text-5xl">2003.<br/>The University of Alabama.</p></div><div className="max-w-3xl"><p className="text-xl leading-[1.9] text-[#C7C0B5] md:text-2xl">In rooms of thirty or forty students, I could be the only man, the only Black person, and the only Black man. I remember shrinking—hesitating to raise my hand, editing how I spoke, trying not to sound too Southern, too confident, too wrong, too Black.</p><p className="mt-8 text-lg leading-[1.9] text-[#AAA398]">Then I realized nobody else had to apologize for existing. I stopped trying to earn the seat and decided I deserved it.</p><blockquote className="mt-12 border-l border-[#C8A96B] pl-7 font-serif text-3xl leading-[1.35] text-white md:text-5xl">“The room didn’t crown me. I crowned myself.”</blockquote></div></div></section>
 
-  const update = (key) => (event) => {
-    setResponses((current) => ({ ...current, [key]: event.target.value }))
-    if (key === 'hardDaySentence') setShowDeclaration(false)
-  }
+<section className="border-b border-white/10 py-24 md:py-32"><div className="mx-auto max-w-7xl px-6 lg:px-12"><p className="mb-5 text-[.68rem] uppercase tracking-[.32em] text-[#C8A96B]">The Framework</p><div className="grid gap-8 lg:grid-cols-[1fr_.75fr] lg:items-end"><h2 className="font-serif text-[clamp(3.2rem,7vw,6.5rem)] leading-[.92] tracking-[-.04em] text-white">Five moves.<br/>One way of walking in.</h2><p className="text-lg leading-8 text-[#AAA398]">Clarity tells you who you are. Community keeps you from carrying it alone. Strategy teaches you to navigate. Legacy gives the work direction. Consistency makes the crown visible.</p></div><div className="mt-14 grid border-y border-white/10 md:grid-cols-5">{stages.map(s=><a key={s[3]} href={'#'+s[3]} className="border-b border-white/10 px-5 py-8 transition hover:bg-[#C8A96B]/[.045] md:border-b-0 md:border-r md:last:border-r-0"><p className="font-serif text-2xl text-[#C8A96B]">{s[0]}</p><p className="mt-7 text-[.65rem] uppercase tracking-[.22em] text-[#C8A96B]">{s[1]}</p><p className="mt-3 font-serif text-2xl text-white">{s[2]}</p><span className="mt-7 block text-[.64rem] uppercase tracking-[.16em] text-white/35">Enter →</span></a>)}</div><div className="mt-7 flex justify-between text-xs uppercase tracking-[.16em] text-white/35"><span>Your progress</span><span className="text-[#C8A96B]">{progress}%</span></div></div></section>
 
-  const powerStatements = useMemo(
-    () => [responses.power1, responses.power2, responses.power3].filter(Boolean),
-    [responses.power1, responses.power2, responses.power3]
-  )
+<section id="clarity" className="border-b border-white/10 bg-[#090909] py-24 md:py-32"><div className="mx-auto grid max-w-7xl gap-14 px-6 lg:grid-cols-[.8fr_1.2fr] lg:px-12"><div><Head n="01" k="Clarity" t="Own Your Identity"><p className="mt-8 text-lg leading-8 text-[#AAA398]">Separate the labels they gave you from the truth you know about yourself.</p></Head><blockquote className="mt-12 border-l border-[#C8A96B] pl-6 font-serif text-2xl leading-relaxed text-white">“Your identity is not something to minimize or manage. It’s the asset they don’t know how to measure.”</blockquote></div><div className="space-y-8 border border-white/10 bg-black/20 p-6 md:p-9"><Field id="theySay" label="The Labels They Gave Me — They say Black men are..." value={r.theySay} onChange={set('theySay')} placeholder="Name the labels, assumptions, or narratives you have encountered." rows={5}/><Field id="iKnow" label="The Truth I Know — I know I am..." value={r.iKnow} onChange={set('iKnow')} placeholder="Write what you know to be true about yourself." rows={5}/><div><p className="mb-4 text-[.68rem] uppercase tracking-[.2em] text-[#C8A96B]">What Makes Me Powerful — 3 Things</p><div className="grid gap-4 md:grid-cols-3"><Field id="power1" label="One" value={r.power1} onChange={set('power1')} placeholder="A strength..."/><Field id="power2" label="Two" value={r.power2} onChange={set('power2')} placeholder="A truth..."/><Field id="power3" label="Three" value={r.power3} onChange={set('power3')} placeholder="An asset..."/></div></div><p className="border-t border-white/10 pt-5 text-xs leading-5 text-[#9E988E]">Your reflections stay in this browser. Nothing is submitted to get ACEd, LLC.</p></div></div></section>
 
-  const crownBg = {
-    backgroundImage: `url(${crownPhoto})`,
-    backgroundPosition: 'center',
-    backgroundRepeat: 'no-repeat',
-    backgroundSize: 'contain',
-  }
+<section id="community" className="border-b border-white/10 py-24 md:py-32"><div className="mx-auto max-w-7xl px-6 lg:px-12"><Head n="02" k="Community" t="Build Your Village"><p className="mt-8 text-lg leading-8 text-[#AAA398]">Self-reliance is valuable. Isolation is dangerous. <span className="font-serif text-2xl text-white">Interdependence is power.</span></p></Head><div className="mt-14 grid gap-px border border-white/10 bg-white/10 md:grid-cols-2"><div className="bg-[#080808] p-7"><Field id="academic" label="Academic Accountability" value={r.academic} onChange={set('academic')} placeholder="Who checks your grades, goals, and deadlines?"/></div><div className="bg-[#080808] p-7"><Field id="emotional" label="Mental & Emotional Support" value={r.emotional} onChange={set('emotional')} placeholder="Who checks on you as a human?"/></div><div className="bg-[#080808] p-7"><Field id="connector" label="Opportunity Connector" value={r.connector} onChange={set('connector')} placeholder="Who opens doors, gives advice, makes introductions?"/></div><div className="bg-[#080808] p-7"><Field id="truthTeller" label="Truth-Teller" value={r.truthTeller} onChange={set('truthTeller')} placeholder="Who keeps you grounded and honest?"/></div></div><div className="mt-8 grid gap-8 md:grid-cols-2"><Field id="weakestCircle" label="Which circle is weakest right now?" value={r.weakestCircle} onChange={set('weakestCircle')} placeholder="An empty space is information, not shame." rows={4}/><Field id="strengthenStep" label="What’s one step you can take this month to strengthen it?" value={r.strengthenStep} onChange={set('strengthenStep')} placeholder="Name one concrete action." rows={4}/></div><p className="mt-14 font-serif text-4xl text-[#C8A96B] md:text-5xl">No king builds alone.</p></div></section>
 
-  return (
-    <main className="min-h-screen bg-[#050505] text-[#F5F2EB]">
-      <style jsx global>{`
-        html { scroll-behavior: smooth; }
-        @media print {
-          nav, footer, .cyc-no-print { display: none !important; }
-          .cyc-screen { display: none !important; }
-          .cyc-print { display: block !important; }
-          body { background: white !important; color: black !important; }
-        }
-      `}</style>
+<section id="strategy" className="border-b border-white/10 bg-[#090909] py-24 md:py-32"><div className="mx-auto grid max-w-7xl gap-14 px-6 lg:grid-cols-[.75fr_1.25fr] lg:px-12"><div><Head n="03" k="Strategy" t="Master the System"><p className="mt-8 text-lg leading-8 text-[#AAA398]">College is more than a classroom. It is policies, language, offices, deadlines, networks, and unspoken rules.</p></Head><p className="mt-10 text-xs font-semibold uppercase tracking-[.3em] text-[#C8A96B]">Advocacy = Strategy</p><p className="mt-4 text-sm uppercase tracking-[.16em] text-white/45">Clarity · Preparation · Follow-through</p></div><div className="space-y-8"><Field id="systemChallenge" label="What is one system or structure in college that confuses or frustrates you?" value={r.systemChallenge} onChange={set('systemChallenge')} placeholder="Name the system." rows={5}/><Field id="avoidedResource" label="What is one office, professor, or resource you avoid using?" value={r.avoidedResource} onChange={set('avoidedResource')} placeholder="Name the resource." rows={5}/><Field id="advocacyAction" label="What would it look like to advocate for yourself instead of shrinking?" value={r.advocacyAction} onChange={set('advocacyAction')} placeholder="Ask. Clarify. Follow up. Prepare. Speak." rows={5}/><blockquote className="border-l border-[#C8A96B] bg-[#C8A96B]/[.04] p-6 font-serif text-2xl text-white">“You can learn the rules without internalizing the harm.”</blockquote></div></div></section>
 
-      <div className="cyc-screen">
-        <section className="relative overflow-hidden border-b border-white/10">
-          <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_right,rgba(200,169,107,.16),transparent_30%)]" />
-          <div className="mx-auto grid min-h-[92vh] max-w-7xl items-center gap-12 px-6 pb-24 pt-40 lg:grid-cols-[1.05fr_.95fr] lg:px-12">
-            <div className="relative z-10">
-              <p className="mb-7 text-xs uppercase tracking-[0.4em] text-[#C8A96B]">Signature Educational Experience</p>
-              <h1 className="max-w-5xl font-serif text-6xl leading-[0.88] tracking-[-0.035em] text-white md:text-8xl lg:text-[7.4rem]">
-                Claiming Your Crown
-              </h1>
-              <p className="mt-8 max-w-3xl text-xl leading-relaxed text-[#D9D3C7] md:text-2xl">
-                Thriving as a Black Man in Higher Education
-              </p>
-              <p className="mt-8 max-w-3xl text-lg leading-[1.9] text-[#C8C1B5] md:text-xl">
-                The crown isn’t something someone else gives you. It is the clarity to know who you are, the community that keeps you grounded, the strategy to navigate systems, the legacy you choose to build, and the consistency to live it.
-              </p>
-              <div className="cyc-no-print mt-11 flex flex-wrap gap-4">
-                <a href="#clarity" className="bg-[#C8A96B] px-8 py-4 text-xs uppercase tracking-[0.2em] text-black transition hover:bg-[#D9BD83]">
-                  Begin the Experience
-                </a>
-                <a href="/contact?topic=claiming-your-crown" className="border border-white/20 px-8 py-4 text-xs uppercase tracking-[0.2em] text-white transition hover:border-[#C8A96B] hover:text-[#C8A96B]">
-                  Bring It to Your Campus
-                </a>
-              </div>
-            </div>
+<section id="legacy" className="border-b border-white/10 py-24 md:py-32"><div className="mx-auto max-w-7xl px-6 lg:px-12"><Head n="04" k="Legacy" t="Define Your Legacy"><p className="mt-8 max-w-3xl text-lg leading-8 text-[#AAA398]">You are not here just to graduate. You are here to graduate different—in reputation, impact, discipline, and what your name means when you are not in the room.</p></Head><div className="mt-14 grid gap-10 lg:grid-cols-[1.12fr_.88fr]"><div className="space-y-8"><Field id="nameMeaning" label="When people say my name, I want it to mean:" value={r.nameMeaning} onChange={set('nameMeaning')} placeholder="What do you want your name to represent?" rows={6}/><div className="grid gap-8 md:grid-cols-2"><Field id="semesterAction" label="If I was fully wearing my crown this semester, I would:" value={r.semesterAction} onChange={set('semesterAction')} placeholder="How would you move differently?" rows={6}/><Field id="weeklyCommitment" label="One action I commit to this week:" value={r.weeklyCommitment} onChange={set('weeklyCommitment')} placeholder="Name one action." rows={6}/></div></div><aside className="flex min-h-[420px] flex-col justify-between border border-[#C8A96B]/25 bg-[#C8A96B]/[.055] p-8"><p className="font-serif text-4xl leading-[1.2] text-white md:text-5xl">Your name is your brand.</p><div><div className="mb-7 h-px w-20 bg-[#C8A96B]"/><p className="font-serif text-3xl text-[#D8D1C5]">Your behavior is your blueprint.</p><p className="mt-6 text-base leading-7 text-[#AAA398]">Legacy is built in repeated, consistent behavior.</p></div></aside></div></div></section>
 
-            <div className="relative z-10 flex items-center justify-center">
-              <div className="relative w-full max-w-[640px] overflow-hidden border border-[#C8A96B]/20 bg-[#0A0A0A] p-8 shadow-[0_0_60px_rgba(0,0,0,.35)]">
-                <div className="aspect-[8/5] w-full" style={crownBg} aria-hidden="true" />
-              </div>
-            </div>
-          </div>
-        </section>
+<section id="consistency" className="relative isolate min-h-[720px] overflow-hidden border-b border-white/10"><img src={CROWN} alt="Gold ceremonial crown" className="absolute inset-0 h-full w-full object-cover object-center"/><div className="absolute inset-0 bg-[linear-gradient(90deg,#050505_0%,#050505_42%,rgba(5,5,5,.62)_68%,rgba(5,5,5,.28)_100%)]"/><div className="relative z-10 mx-auto flex min-h-[720px] max-w-7xl items-center px-6 py-24 lg:px-12"><div className="max-w-2xl"><Head n="05" k="Consistency" t="Wear Your Crown"><p className="mt-9 text-xl leading-9 text-[#C7C0B5]">The crown is not decoration. It is responsibility. It becomes visible in the choices you repeat when nobody is applauding.</p></Head><p className="mt-10 font-serif text-4xl leading-[1.35] text-[#C8A96B] md:text-5xl">Your consistency is the crown.</p></div></div></section>
 
-        <section className="border-b border-white/10 py-20">
-          <div className="mx-auto grid max-w-6xl gap-12 px-6 lg:grid-cols-[1.15fr_.85fr] lg:px-12">
-            <div>
-              <p className="mb-5 text-xs uppercase tracking-[0.32em] text-[#C8A96B]">A Digital Reflection Experience</p>
-              <p className="font-serif text-3xl leading-[1.35] text-white md:text-4xl">
-                The room may not change tomorrow. But you can change how you walk into it.
-              </p>
-            </div>
-            <div className="text-base leading-[1.9] text-[#C8C1B5]">
-              <p>This experience is adapted from Dr. J’s facilitated <em>Claiming Your Crown</em> session. Your reflections remain on your device. They are not transmitted, stored, or submitted to get ACEd, LLC.</p>
-            </div>
-          </div>
-        </section>
+<section className="border-b border-white/10 bg-[#090909] py-24 md:py-32"><div className="mx-auto grid max-w-7xl gap-14 px-6 lg:grid-cols-[.85fr_1.15fr] lg:px-12"><div><p className="mb-6 text-[.68rem] uppercase tracking-[.3em] text-[#C8A96B]">Final Declaration</p><h2 className="font-serif text-[clamp(3.2rem,7vw,6.3rem)] leading-[.92] tracking-[-.04em] text-white">The words you need on the hard days.</h2><p className="mt-8 text-lg leading-8 text-[#AAA398]">Before you say my words, write your own.</p></div><div className="border border-[#C8A96B]/25 bg-[#C8A96B]/[.045] p-6 md:p-10"><Field id="hardDaySentence" label="Write one sentence you need to remember on hard days:" value={r.hardDaySentence} onChange={set('hardDaySentence')} placeholder="I need to remember..." rows={7}/><div className="mt-8 flex flex-wrap gap-3"><button type="button" onClick={claim} className="bg-[#C8A96B] px-8 py-4 text-xs font-semibold uppercase tracking-[.2em] text-black hover:bg-[#D9BD83]">Claim My Crown</button><button type="button" onClick={()=>window.print()} className="border border-white/20 px-6 py-4 text-xs uppercase tracking-[.18em] text-white hover:border-[#C8A96B]">Print My Reflection</button><a href="/claim-your-crown/claiming-your-crown-reflection-guide.pdf" className="border border-white/20 px-6 py-4 text-xs uppercase tracking-[.18em] text-white hover:border-[#C8A96B]">Download Guide</a></div>{r.hardDaySentence.trim()&&<div className="mt-10 border-t border-white/10 pt-8"><p className="text-[.66rem] uppercase tracking-[.26em] text-[#C8A96B]">My Crown Declaration</p><p className="mt-5 font-serif text-3xl leading-[1.35] text-white md:text-4xl">{r.hardDaySentence}</p></div>}</div></div></section>
 
-        <section id="clarity" className="border-b border-white/10 bg-[#090909] py-24">
-          <div className="mx-auto max-w-6xl px-6 lg:px-12">
-            <SectionHeader number="01" eyebrow="Clarity" title="Own Your Identity" />
-            <p className="mb-12 max-w-3xl text-lg leading-[1.9] text-[#C8C1B5]">
-              Before you can build your village or master a system, you have to separate what “they” said from what you know. Your identity is not an obstacle to minimize or manage. It is an asset to understand and leverage intentionally.
-            </p>
-            <div className="grid gap-7 lg:grid-cols-2">
-              <Field label="They say Black men are..." value={responses.theySay} onChange={update('theySay')} placeholder="Name the labels, assumptions, or narratives you have encountered." rows={5} />
-              <Field label="I know I am..." value={responses.iKnow} onChange={update('iKnow')} placeholder="Name what you know to be true about yourself." rows={5} />
-            </div>
-            <div className="mt-10">
-              <p className="mb-5 text-xs uppercase tracking-[0.18em] text-[#C8A96B]">What Makes Me Powerful - Three Things</p>
-              <div className="grid gap-5 md:grid-cols-3">
-                <Field label="One" value={responses.power1} onChange={update('power1')} placeholder="A strength, truth, or asset..." />
-                <Field label="Two" value={responses.power2} onChange={update('power2')} placeholder="A strength, truth, or asset..." />
-                <Field label="Three" value={responses.power3} onChange={update('power3')} placeholder="A strength, truth, or asset..." />
-              </div>
-            </div>
-            <blockquote className="mt-16 border-l border-[#C8A96B] pl-7 font-serif text-2xl leading-relaxed text-white md:text-3xl">Identity gives you clarity.</blockquote>
-          </div>
-        </section>
+{claimed&&<section ref={ref} className="relative isolate min-h-screen overflow-hidden border-b border-white/10 bg-black py-24 md:py-32"><img src={CROWN} alt="Illuminated gold ceremonial crown" className="absolute inset-0 h-full w-full object-cover object-center transition duration-700" style={{opacity:crownLight,filter:`brightness(${.42+crownLight}) saturate(${.8+crownLight*.35})`}}/><div className="absolute inset-0 bg-[radial-gradient(circle_at_center,rgba(200,169,107,.04),rgba(0,0,0,.88)_55%,#000_82%)]"/><div className="relative z-10 mx-auto max-w-5xl px-6 text-center lg:px-12"><p className="mb-6 text-[.68rem] uppercase tracking-[.34em] text-[#C8A96B]">I Wear My Crown</p><h2 className="font-serif text-4xl text-white md:text-6xl">Now say this with me.</h2><div className="mx-auto mt-16 max-w-4xl space-y-5">{affirm.map((x,i)=><p key={x} className={`font-serif transition-all duration-700 ${i===7||i>=11?'text-3xl md:text-5xl':'text-2xl md:text-4xl'} ${i===7?'text-[#C8A96B]':'text-white'} ${i<lines?'translate-y-0 opacity-100':'translate-y-3 opacity-0'}`}>{x}</p>)}</div><div className={`mt-20 border-t border-[#C8A96B]/25 pt-9 transition duration-1000 ${lines>=affirm.length?'opacity-100':'opacity-0'}`}><p className="font-serif text-3xl italic text-[#C8A96B] md:text-4xl">Stay Black and protect your joy!</p><p className="mt-4 text-xs uppercase tracking-[.24em] text-white/55">— Dr. J</p></div></div></section>}
 
-        <section className="border-b border-white/10 py-24">
-          <div className="mx-auto max-w-6xl px-6 lg:px-12">
-            <SectionHeader number="02" eyebrow="Community" title="Build Your Village" />
-            <p className="mb-4 max-w-3xl font-serif text-3xl text-white">Interdependence is power.</p>
-            <p className="mb-12 max-w-3xl text-lg leading-[1.9] text-[#C8C1B5]">Self-reliance is valuable. Isolation is dangerous. Claiming your crown does not mean standing alone. It means standing supported.</p>
-            <div className="grid gap-6 md:grid-cols-2">
-              <Field label="Academic Accountability" value={responses.academic} onChange={update('academic')} placeholder="Who checks your grades, goals, and deadlines?" />
-              <Field label="Mental & Emotional Support" value={responses.emotional} onChange={update('emotional')} placeholder="Who checks on you as a human?" />
-              <Field label="Opportunity Connector" value={responses.connector} onChange={update('connector')} placeholder="Who opens doors, gives advice, or makes introductions?" />
-              <Field label="Truth-Teller" value={responses.truthTeller} onChange={update('truthTeller')} placeholder="Who keeps you grounded and honest?" />
-            </div>
-            <div className="mt-10 grid gap-7 lg:grid-cols-2">
-              <Field label="Which circle is weakest right now?" value={responses.weakestCircle} onChange={update('weakestCircle')} placeholder="An empty space is not failure. It is information." rows={4} />
-              <Field label="One step I can take this month to strengthen it" value={responses.strengthenStep} onChange={update('strengthenStep')} placeholder="Name one concrete action." rows={4} />
-            </div>
-            <div className="mt-16 border border-[#C8A96B]/20 bg-[#C8A96B]/[0.06] p-8 md:p-10">
-              <p className="font-serif text-3xl leading-relaxed text-white">No king builds alone.</p>
-              <p className="mt-3 text-[#C8C1B5]">A crown is not just position. It is structure, support, alignment, and responsibility.</p>
-            </div>
-          </div>
-        </section>
-
-        <section className="border-b border-white/10 bg-[#090909] py-24">
-          <div className="mx-auto max-w-6xl px-6 lg:px-12">
-            <SectionHeader number="03" eyebrow="Strategy" title="Master the System" />
-            <p className="mb-12 max-w-4xl text-lg leading-[1.9] text-[#C8C1B5]">College is more than a classroom. It is policies, language, unspoken rules, offices, deadlines, networks, and expectations. Some gaps are knowledge gaps. Some are institutional gaps. You can learn the system without letting it define you.</p>
-            <div className="space-y-7">
-              <Field label="What is one system or structure in college that confuses or frustrates you?" value={responses.systemChallenge} onChange={update('systemChallenge')} placeholder="Financial aid, internships, office hours, networking, advising, policies..." rows={4} />
-              <Field label="What is one office, professor, or resource you avoid using?" value={responses.avoidedResource} onChange={update('avoidedResource')} placeholder="Name the resource you know exists but have not fully used." rows={4} />
-              <Field label="What would it look like to advocate for yourself instead of shrinking?" value={responses.advocacyAction} onChange={update('advocacyAction')} placeholder="Ask. Clarify. Follow up. Prepare. Speak." rows={4} />
-            </div>
-            <div className="mt-16 grid gap-4 border-y border-white/10 py-10 text-center md:grid-cols-3">
-              {['Clarity', 'Preparation', 'Follow-through'].map((item) => <p key={item} className="font-serif text-2xl text-white md:text-3xl">{item}</p>)}
-            </div>
-            <p className="mt-8 text-center text-xs uppercase tracking-[0.32em] text-[#C8A96B]">Advocacy is strategy.</p>
-          </div>
-        </section>
-
-        <section className="border-b border-white/10 py-24">
-          <div className="mx-auto max-w-6xl px-6 lg:px-12">
-            <SectionHeader number="04" eyebrow="Legacy" title="Define Your Legacy" />
-            <p className="mb-12 max-w-4xl text-lg leading-[1.9] text-[#C8C1B5]">Different is more than a GPA or a degree. Different is reputation. Different is impact. Different is legacy.</p>
-            <div className="space-y-7">
-              <Field label="When people say my name, I want it to mean..." value={responses.nameMeaning} onChange={update('nameMeaning')} placeholder="Not what sounds impressive. What do you want your name to represent?" rows={4} />
-              <div className="grid gap-7 lg:grid-cols-2">
-                <Field label="If I was fully wearing my crown this semester, I would..." value={responses.semesterAction} onChange={update('semesterAction')} placeholder="How would you move differently?" rows={5} />
-                <Field label="One action I commit to this week" value={responses.weeklyCommitment} onChange={update('weeklyCommitment')} placeholder="What does your behavior need to look like this week?" rows={5} />
-              </div>
-            </div>
-            <div className="mt-16 text-center">
-              <p className="font-serif text-3xl leading-relaxed text-white md:text-5xl">Your name is your brand.<br />Your behavior is your blueprint.</p>
-            </div>
-          </div>
-        </section>
-
-        <section className="relative overflow-hidden border-b border-white/10 py-32">
-          <div className="absolute inset-0 opacity-25" style={crownBg} aria-hidden="true" />
-          <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,rgba(200,169,107,.14),rgba(5,5,5,.93)_60%)]" />
-          <div className="relative mx-auto max-w-5xl px-6 text-center lg:px-12">
-            <p className="mb-6 text-xs uppercase tracking-[0.35em] text-[#C8A96B]">Consistency</p>
-            <h2 className="font-serif text-5xl leading-tight text-white md:text-7xl">Your consistency is the crown.</h2>
-            <p className="mx-auto mt-8 max-w-3xl text-lg leading-[1.9] text-[#C8C1B5]">Legacy is not built in speeches. It is built in repeated, consistent behavior. The crown is not decoration. It is responsibility.</p>
-          </div>
-        </section>
-
-        <section className="border-b border-white/10 bg-[#090909] py-24">
-          <div className="mx-auto max-w-5xl px-6 lg:px-12">
-            <SectionHeader number="05" eyebrow="Declaration" title="Claim Your Crown" />
-            <p className="mb-10 max-w-3xl text-lg leading-[1.9] text-[#C8C1B5]">Before you repeat anyone else’s words, write the sentence you need to remember on the hard days.</p>
-            <Field label="My Crown Declaration" value={responses.hardDaySentence} onChange={update('hardDaySentence')} placeholder="On hard days, I need to remember..." rows={5} />
-            <div className="cyc-no-print mt-8 flex flex-wrap gap-4">
-              <button type="button" onClick={() => setShowDeclaration(Boolean(responses.hardDaySentence.trim()))} className="bg-[#C8A96B] px-8 py-4 text-xs uppercase tracking-[0.2em] text-black transition hover:bg-[#D9BD83]">Claim My Crown</button>
-              <button type="button" onClick={() => window.print()} className="border border-white/20 px-8 py-4 text-xs uppercase tracking-[0.2em] text-white transition hover:border-[#C8A96B] hover:text-[#C8A96B]">Print My Reflection</button>
-              <a href="/claim-your-crown/claiming-your-crown-reflection-guide.pdf" className="border border-white/20 px-8 py-4 text-xs uppercase tracking-[0.2em] text-white transition hover:border-[#C8A96B] hover:text-[#C8A96B]">Download Reflection Guide</a>
-            </div>
-            {showDeclaration && responses.hardDaySentence && (
-              <div className="mt-14 border border-[#C8A96B]/35 bg-[linear-gradient(180deg,rgba(200,169,107,.12),rgba(255,255,255,.025))] px-8 py-12 text-center md:px-14 md:py-16">
-                <p className="mb-6 text-xs uppercase tracking-[0.28em] text-[#C8A96B]">My Crown Declaration</p>
-                <p className="font-serif text-3xl leading-relaxed text-white md:text-5xl">{responses.hardDaySentence}</p>
-              </div>
-            )}
-          </div>
-        </section>
-
-        <section className="relative overflow-hidden border-b border-white/10 py-28">
-          <div className="absolute inset-0 opacity-15" style={crownBg} aria-hidden="true" />
-          <div className="absolute inset-0 bg-[linear-gradient(180deg,#050505_0%,rgba(5,5,5,.86)_45%,#050505_100%)]" />
-          <div className="relative mx-auto max-w-4xl px-6 text-center lg:px-12">
-            <p className="mb-7 text-xs uppercase tracking-[0.35em] text-[#C8A96B]">I Wear My Crown</p>
-            <h2 className="mb-16 font-serif text-4xl text-white md:text-6xl">Now say this with me.</h2>
-            <div className="space-y-6">
-              {affirmationLines.map((line, index) => (
-                <p key={line} className={`${index === 7 || index >= 11 ? 'text-white' : 'text-[#D1CABC]'} font-serif text-2xl leading-relaxed md:text-4xl ${index === 7 ? 'py-5 text-[#C8A96B] md:text-5xl' : ''}`}>{line}</p>
-              ))}
-            </div>
-            <div className="mt-20 border-t border-[#C8A96B]/25 pt-10">
-              <p className="font-serif text-2xl italic text-[#C8A96B] md:text-3xl">Stay Black and protect your joy.</p>
-              <p className="mt-4 text-sm uppercase tracking-[0.22em] text-[#BEB6A8]">— Dr. J</p>
-            </div>
-          </div>
-        </section>
-
-        <section className="bg-[#0A0A0A] py-28">
-          <div className="mx-auto max-w-5xl px-6 text-center lg:px-12">
-            <p className="mb-6 text-xs uppercase tracking-[0.35em] text-[#C8A96B]">Bring It to Your Campus</p>
-            <h2 className="font-serif text-5xl leading-tight text-white md:text-7xl">Claiming Your Crown</h2>
-            <p className="mx-auto mt-8 max-w-3xl text-lg leading-[1.9] text-[#C8C1B5]">A facilitated educational experience supporting Black men in higher education through identity reflection, intentional community, institutional navigation, self-advocacy, legacy, and consistent action.</p>
-            <div className="cyc-no-print mt-12 flex flex-wrap justify-center gap-4">
-              <a href="/contact?topic=claiming-your-crown" className="bg-[#C8A96B] px-10 py-5 text-xs uppercase tracking-[0.2em] text-black transition hover:bg-[#D9BD83]">Book This Experience</a>
-              <a href="mailto:booking@getacedllc.com?subject=Claiming%20Your%20Crown%20Inquiry" className="border border-white/20 px-10 py-5 text-xs uppercase tracking-[0.2em] text-white transition hover:border-[#C8A96B] hover:text-[#C8A96B]">booking@getacedllc.com</a>
-            </div>
-          </div>
-        </section>
-      </div>
-
-      <section className="cyc-print hidden bg-white p-10 text-black">
-        <div className="mx-auto max-w-4xl">
-          <p className="mb-2 text-xs uppercase tracking-[0.2em]">get ACEd, LLC</p>
-          <h1 className="mb-2 font-serif text-4xl">Claiming Your Crown Reflection</h1>
-          <p className="mb-10">Thriving as a Black Man in Higher Education</p>
-
-          <h2 className="mt-8 font-serif text-2xl">Own Your Identity</h2>
-          <p><strong>They say Black men are:</strong> {responses.theySay}</p>
-          <p><strong>I know I am:</strong> {responses.iKnow}</p>
-          <p><strong>What makes me powerful:</strong> {powerStatements.join(' • ')}</p>
-
-          <h2 className="mt-8 font-serif text-2xl">Build Your Village</h2>
-          <p><strong>Academic Accountability:</strong> {responses.academic}</p>
-          <p><strong>Mental & Emotional Support:</strong> {responses.emotional}</p>
-          <p><strong>Opportunity Connector:</strong> {responses.connector}</p>
-          <p><strong>Truth-Teller:</strong> {responses.truthTeller}</p>
-          <p><strong>Weakest circle:</strong> {responses.weakestCircle}</p>
-          <p><strong>Step to strengthen it:</strong> {responses.strengthenStep}</p>
-
-          <h2 className="mt-8 font-serif text-2xl">Master the System</h2>
-          <p><strong>System or structure:</strong> {responses.systemChallenge}</p>
-          <p><strong>Resource I avoid:</strong> {responses.avoidedResource}</p>
-          <p><strong>Self-advocacy:</strong> {responses.advocacyAction}</p>
-
-          <h2 className="mt-8 font-serif text-2xl">Define Your Legacy</h2>
-          <p><strong>When people say my name:</strong> {responses.nameMeaning}</p>
-          <p><strong>If I was fully wearing my crown:</strong> {responses.semesterAction}</p>
-          <p><strong>This week I commit to:</strong> {responses.weeklyCommitment}</p>
-
-          <h2 className="mt-8 font-serif text-2xl">My Crown Declaration</h2>
-          <p className="text-xl">{responses.hardDaySentence}</p>
-          <p className="mt-12 text-sm">Stay Black and protect your joy. — Dr. J</p>
-        </div>
-      </section>
-    </main>
-  )
+<section className="relative bg-[#080808] py-28 md:py-36"><div className="mx-auto max-w-7xl px-6 lg:px-12"><p className="mb-6 text-[.68rem] uppercase tracking-[.32em] text-[#C8A96B]">Bring Claiming Your Crown to Your Campus</p><div className="grid gap-10 lg:grid-cols-[1.15fr_.85fr] lg:items-end"><h2 className="font-serif text-[clamp(3.5rem,8vw,7rem)] leading-[.9] tracking-[-.045em] text-white">The digital experience is the beginning.</h2><div><p className="text-lg leading-8 text-[#AAA398]">The facilitated experience creates the dialogue, accountability, community, and institutional application a webpage cannot reproduce.</p><div className="mt-8 flex flex-wrap gap-3"><a href="/contact?topic=claiming-your-crown" className="bg-[#C8A96B] px-8 py-4 text-xs font-semibold uppercase tracking-[.2em] text-black">Bring This Experience to Your Campus</a><a href="mailto:booking@getacedllc.com?subject=Claiming%20Your%20Crown%20Inquiry" className="border border-white/20 px-6 py-4 text-xs uppercase tracking-[.18em] text-white">booking@getacedllc.com</a></div></div></div></div></section>
+</div><section className="print hidden bg-white p-10 text-black"><h1 className="font-serif text-4xl">Claiming Your Crown Reflection</h1><p className="mt-6"><b>They say Black men are:</b> {r.theySay}</p><p><b>I know I am:</b> {r.iKnow}</p><p><b>What makes me powerful:</b> {[r.power1,r.power2,r.power3].filter(Boolean).join(' • ')}</p><h2 className="mt-8 font-serif text-2xl">My Village</h2><p>{r.academic}</p><p>{r.emotional}</p><p>{r.connector}</p><p>{r.truthTeller}</p><h2 className="mt-8 font-serif text-2xl">Master the System</h2><p>{r.systemChallenge}</p><p>{r.avoidedResource}</p><p>{r.advocacyAction}</p><h2 className="mt-8 font-serif text-2xl">Legacy</h2><p>{r.nameMeaning}</p><p>{r.semesterAction}</p><p>{r.weeklyCommitment}</p><h2 className="mt-8 font-serif text-2xl">My Crown Declaration</h2><p className="font-serif text-2xl">{r.hardDaySentence}</p><p className="mt-10">Stay Black and protect your joy! — Dr. J</p></section></main>
 }
