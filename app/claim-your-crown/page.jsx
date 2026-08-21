@@ -1,9 +1,6 @@
 import SiteLayout from '../../components/SiteLayout'
 import ClaimYourCrownExperience from '../../components/ClaimYourCrownExperience'
 
-const REAL_CROWN =
-  'https://upload.wikimedia.org/wikipedia/commons/3/3b/CORONA_REALE_ROYAL_CROWN.jpg'
-
 export const metadata = {
   title: 'Claiming Your Crown',
   description:
@@ -20,9 +17,9 @@ export const metadata = {
     type: 'website',
     images: [
       {
-        url: 'https://www.getacedllc.com/claim-your-crown/hero-crown.jpg',
-        width: 900,
-        height: 506,
+        url: 'https://www.getacedllc.com/claim-your-crown/hero-crown.webp',
+        width: 1672,
+        height: 941,
         alt: 'Claiming Your Crown — get ACEd, LLC',
       },
     ],
@@ -31,7 +28,7 @@ export const metadata = {
     card: 'summary_large_image',
     title: 'Claiming Your Crown | get ACEd, LLC',
     description: 'The crown isn’t given. It’s claimed.',
-    images: ['https://www.getacedllc.com/claim-your-crown/hero-crown.jpg'],
+    images: ['https://www.getacedllc.com/claim-your-crown/hero-crown.webp'],
   },
 }
 
@@ -39,13 +36,6 @@ export default function ClaimYourCrownPage() {
   return (
     <SiteLayout>
       <style>{`
-        /*
-         * Crown progression
-         * The source is a 6240 × 4160 photograph of a physical crown,
-         * released under CC0. We reveal more of it as the participant
-         * moves from identity to consistency.
-         */
-
         .screen > section:first-child {
           position: relative;
           isolation: isolate;
@@ -61,12 +51,9 @@ export default function ClaimYourCrownPage() {
           position: absolute;
           inset: 0;
           z-index: 0;
-          background-image: url('${REAL_CROWN}');
-          background-repeat: no-repeat;
-          background-size: cover;
-          background-position: 72% 47%;
-          filter: brightness(.73) contrast(1.05) saturate(.9);
-          transform: scale(1.015);
+          background: url('/claim-your-crown/hero-crown.webp') center / cover no-repeat;
+          filter: brightness(.88) contrast(1.04) saturate(.96);
+          transform: scale(1.005);
         }
 
         .screen > section:first-child::after {
@@ -75,8 +62,8 @@ export default function ClaimYourCrownPage() {
           inset: 0;
           z-index: 1;
           background:
-            linear-gradient(90deg, #050505 0%, rgba(5,5,5,.985) 25%, rgba(5,5,5,.82) 47%, rgba(5,5,5,.34) 70%, rgba(5,5,5,.48) 100%),
-            linear-gradient(0deg, rgba(5,5,5,.28), transparent 45%);
+            linear-gradient(90deg, #050505 0%, rgba(5,5,5,.985) 27%, rgba(5,5,5,.79) 49%, rgba(5,5,5,.18) 74%, rgba(5,5,5,.30) 100%),
+            linear-gradient(0deg, rgba(5,5,5,.30), transparent 42%);
           pointer-events: none;
         }
 
@@ -113,10 +100,10 @@ export default function ClaimYourCrownPage() {
           position: absolute;
           inset: 0;
           z-index: 0;
-          background-image: url('${REAL_CROWN}');
           background-repeat: no-repeat;
+          background-size: cover;
+          background-position: center;
           pointer-events: none;
-          transition: opacity .6s ease, filter .6s ease;
         }
 
         #clarity::after,
@@ -131,66 +118,60 @@ export default function ClaimYourCrownPage() {
           pointer-events: none;
         }
 
-        /* 01 — a glint: only enough crown to suggest what is coming. */
+        /* 01 — Clarity: the crown is still mostly in shadow. */
         #clarity::before {
-          opacity: .10;
-          background-size: 1150px auto;
-          background-position: calc(100% + 410px) 46%;
-          filter: brightness(.34) saturate(.55) contrast(1.08);
+          background-image: url('/claim-your-crown/crown-clarity.webp');
+          opacity: .34;
+          filter: brightness(.72) saturate(.84);
         }
         #clarity::after {
-          background: linear-gradient(90deg, rgba(9,9,9,.995) 0%, rgba(9,9,9,.96) 62%, rgba(9,9,9,.73) 100%);
+          background: linear-gradient(90deg, rgba(9,9,9,.99) 0%, rgba(9,9,9,.94) 55%, rgba(9,9,9,.54) 100%);
         }
 
-        /* 02 — the silhouette begins to read as a crown. */
+        /* 02 — Community: more of the crown enters the light. */
         #community::before {
-          opacity: .18;
-          background-size: 1060px auto;
-          background-position: calc(100% + 300px) 48%;
-          filter: brightness(.43) saturate(.66) contrast(1.08);
+          background-image: url('/claim-your-crown/crown-community.webp');
+          opacity: .45;
+          filter: brightness(.78) saturate(.88);
         }
         #community::after {
-          background: linear-gradient(90deg, rgba(5,5,5,.99) 0%, rgba(5,5,5,.94) 55%, rgba(5,5,5,.68) 100%);
+          background: linear-gradient(90deg, rgba(5,5,5,.985) 0%, rgba(5,5,5,.91) 51%, rgba(5,5,5,.43) 100%);
         }
 
-        /* 03 — more metal, structure, and detail become visible. */
+        /* 03 — Strategy: structure and metalwork are clearly visible. */
         #strategy::before {
-          opacity: .28;
-          background-size: 980px auto;
-          background-position: calc(100% + 205px) 47%;
-          filter: brightness(.53) saturate(.74) contrast(1.08);
+          background-image: url('/claim-your-crown/crown-strategy.webp');
+          opacity: .58;
+          filter: brightness(.84) saturate(.92);
         }
         #strategy::after {
-          background: linear-gradient(90deg, rgba(9,9,9,.99) 0%, rgba(9,9,9,.91) 51%, rgba(9,9,9,.57) 100%);
+          background: linear-gradient(90deg, rgba(9,9,9,.985) 0%, rgba(9,9,9,.88) 46%, rgba(9,9,9,.35) 100%);
         }
 
-        /* 04 — the crown is now unmistakable, but not yet fully revealed. */
+        /* 04 — Legacy: the crown is nearly fully revealed. */
         #legacy::before {
-          opacity: .40;
-          background-size: 900px auto;
-          background-position: calc(100% + 110px) 48%;
-          filter: brightness(.66) saturate(.84) contrast(1.06);
+          background-image: url('/claim-your-crown/crown-legacy.webp');
+          opacity: .72;
+          filter: brightness(.92) saturate(.97);
         }
         #legacy::after {
-          background: linear-gradient(90deg, rgba(5,5,5,.985) 0%, rgba(5,5,5,.88) 44%, rgba(5,5,5,.43) 100%);
+          background: linear-gradient(90deg, rgba(5,5,5,.98) 0%, rgba(5,5,5,.83) 41%, rgba(5,5,5,.25) 100%);
         }
 
-        /* 05 — full crown. */
+        /* 05 — Consistency: full crown reveal. */
         #consistency > img[alt="Gold ceremonial crown"] {
           display: none !important;
         }
         #consistency::before {
-          opacity: .92;
-          background-size: cover;
-          background-position: 67% 49%;
-          filter: brightness(.82) saturate(.94) contrast(1.07);
-          transform: scale(1.01);
+          background-image: url('/claim-your-crown/crown-consistency.webp');
+          opacity: 1;
+          filter: brightness(1.02) saturate(1.02) contrast(1.03);
         }
         #consistency::after {
-          background: linear-gradient(90deg, #050505 0%, rgba(5,5,5,.97) 36%, rgba(5,5,5,.62) 61%, rgba(5,5,5,.20) 100%);
+          background: linear-gradient(90deg, #050505 0%, rgba(5,5,5,.96) 35%, rgba(5,5,5,.50) 58%, rgba(5,5,5,.10) 100%);
         }
 
-        /* The affirmation is the brightest crown moment. */
+        /* The affirmation uses the brightest generated crown treatment. */
         section:has(> img[alt="Illuminated gold ceremonial crown"]) {
           position: relative;
           isolation: isolate;
@@ -204,18 +185,15 @@ export default function ClaimYourCrownPage() {
           position: absolute;
           inset: 0;
           z-index: 0;
-          background-image: url('${REAL_CROWN}');
-          background-size: cover;
-          background-position: center 48%;
-          background-repeat: no-repeat;
-          filter: brightness(.88) saturate(1.02) contrast(1.08);
+          background: url('/claim-your-crown/crown-consistency.webp') center / cover no-repeat;
+          filter: brightness(1.06) saturate(1.03) contrast(1.03);
         }
         section:has(> img[alt="Illuminated gold ceremonial crown"])::after {
           content: '';
           position: absolute;
           inset: 0;
           z-index: 1;
-          background: radial-gradient(circle at 68% 42%, rgba(200,169,107,.08), rgba(0,0,0,.78) 52%, #000 86%);
+          background: radial-gradient(circle at 70% 42%, rgba(200,169,107,.05), rgba(0,0,0,.64) 48%, #000 88%);
           pointer-events: none;
         }
         section:has(> img[alt="Illuminated gold ceremonial crown"]) > div {
@@ -225,30 +203,34 @@ export default function ClaimYourCrownPage() {
 
         @media (max-width: 900px) {
           .screen > section:first-child::before {
-            background-size: auto 70%;
-            background-position: 67% 5%;
-            filter: brightness(.58) contrast(1.05) saturate(.82);
+            background-size: auto 68%;
+            background-position: 68% 5%;
           }
           .screen > section:first-child::after {
-            background: linear-gradient(180deg, rgba(5,5,5,.16) 0%, rgba(5,5,5,.66) 40%, #050505 72%);
+            background: linear-gradient(180deg, rgba(5,5,5,.12) 0%, rgba(5,5,5,.58) 39%, #050505 70%);
           }
 
           #clarity::before,
           #community::before,
           #strategy::before,
           #legacy::before {
-            background-size: 760px auto;
-            background-position: calc(100% + 335px) 12%;
+            background-size: auto 62%;
+            background-position: 68% 5%;
+          }
+          #clarity::after,
+          #community::after,
+          #strategy::after,
+          #legacy::after {
+            background: linear-gradient(180deg, rgba(5,5,5,.36) 0%, rgba(5,5,5,.86) 42%, rgba(5,5,5,.98) 72%);
           }
 
           #consistency::before,
           section:has(> img[alt="Illuminated gold ceremonial crown"])::before {
             background-size: auto 76%;
-            background-position: 66% 6%;
+            background-position: 66% 5%;
           }
-
           #consistency::after {
-            background: linear-gradient(180deg, rgba(5,5,5,.32) 0%, rgba(5,5,5,.70) 45%, #050505 78%);
+            background: linear-gradient(180deg, rgba(5,5,5,.18) 0%, rgba(5,5,5,.62) 43%, #050505 77%);
           }
         }
       `}</style>
