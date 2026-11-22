@@ -8,6 +8,7 @@ const navigationItems = [
   { label: 'About', href: '/about' },
   { label: 'Expertise', href: '/expertise' },
   { label: 'Speaking', href: '/speaking' },
+  { label: 'Training', href: '/training' },
   { label: 'Claiming Your Crown', href: '/claim-your-crown' },
   { label: 'Insights', href: '/insights' },
   { label: 'Contact', href: '/contact' },
