@@ -8,6 +8,7 @@ const navigationItems = [
   { label: 'About', href: '/about' },
   { label: 'Expertise', href: '/expertise' },
   { label: 'Speaking', href: '/speaking' },
+  { label: 'Training', href: '/training' },
   { label: 'Crown', href: '/claim-your-crown' },
   { label: 'Insights', href: '/insights' },
   { label: 'Contact', href: '/contact' },
@@ -26,11 +27,11 @@ export default function Navigation() {
             width={280}
             height={90}
             priority
-            className="h-auto w-[180px] md:w-[240px] lg:w-[280px]"
+            className="h-auto w-[180px] md:w-[220px] lg:w-[240px]"
           />
         </a>
 
-        <div className="hidden lg:flex items-center gap-8 xl:gap-10 uppercase tracking-[0.16em] text-xs xl:text-sm">
+        <div className="hidden lg:flex items-center gap-4 xl:gap-6 uppercase tracking-[0.14em] text-[11px] xl:text-xs">
           {navigationItems.map((item) => {
             const isActive = pathname === item.href
 
