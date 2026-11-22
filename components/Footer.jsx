@@ -28,6 +28,7 @@ export default function Footer() {
             <a href="/about" className="block hover:text-white transition-colors duration-300">About</a>
             <a href="/expertise" className="block hover:text-white transition-colors duration-300">Expertise</a>
             <a href="/speaking" className="block hover:text-white transition-colors duration-300">Speaking</a>
+            <a href="/training" className="block hover:text-white transition-colors duration-300">Mental Health First Aid Training</a>
             <a href="/insights" className="block hover:text-white transition-colors duration-300">Insights</a>
           </div>
         </div>
