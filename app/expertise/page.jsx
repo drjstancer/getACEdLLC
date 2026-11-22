@@ -70,7 +70,7 @@ export default function ExpertisePage() {
                   <a href="/training" className="mt-8 inline-block border-b border-[#C8A96B] pb-2 text-sm uppercase tracking-[0.14em] text-[#E9D2A0] hover:text-white">
                     Explore Adult Mental Health First Aid Training
                   </a>
-                )
+                )}
               </div>
             ))}
           </div>
