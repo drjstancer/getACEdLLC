@@ -6,6 +6,7 @@ export default function sitemap() {
     { url: `${baseUrl}/about`, lastModified: new Date() },
     { url: `${baseUrl}/expertise`, lastModified: new Date() },
     { url: `${baseUrl}/speaking`, lastModified: new Date() },
+    { url: `${baseUrl}/training`, lastModified: new Date() },
     { url: `${baseUrl}/claim-your-crown`, lastModified: new Date() },
     { url: `${baseUrl}/contact`, lastModified: new Date() },
     { url: `${baseUrl}/insights`, lastModified: new Date() },
